@@ -12,15 +12,16 @@ database persistence are not implemented yet.
 
 Milestone 1A is complete at <https://supportbridge-agentathon.vercel.app/>:
 the participant confirmed a working frontend and Python health response.
-`/health` is application liveness only. The participant also confirmed v1.0 was
-committed, deployed and production-tested. The new v1.1 release is **local only**
-and has not been deployed or verified in production during this assignment.
+`/health` is application liveness only. Checkout v1.0 and v1.1 are both committed,
+deployed and production-verified per the participant: eight successful production
+checkout requests were run with PowerShell after the local 1B-B verification.
 
 ## Files and request path
 
 - `frontend/`: Next.js App Router, React, TypeScript, Tailwind CSS and health client tests.
 - `backend/main.py`: FastAPI application with a Pydantic v2 health response.
 - `backend/sandbox/`: strict quote models, release dispatch and versioned calculations.
+- `backend/sandbox/release_manifest.json`: pinned historical source identities.
 - `backend/oracle/`: independent host-side policy calculations and comparisons.
 - `backend/tests/`: pytest health checks.
 - `vercel.json`: combined Vercel Services deployment and public routing.
@@ -111,7 +112,7 @@ of at least 10,000 cents;
 otherwise it is 750 cents. Discounts do not apply to shipping. Zero subtotal is
 valid and incurs 750 cents shipping; 100% discount does not change eligibility.
 
-Exactly `v1.0` and `v1.1` are supported locally. Set `release` to select the
+Exactly `v1.0` and `v1.1` are supported. Set `release` to select the
 implementation; the request/response fields are the same for both. The example
 above uses v1.0. Missing/extra fields, unsupported releases,
 negative/out-of-range values, booleans, numeric strings and floats return
@@ -121,6 +122,25 @@ existing health check; no storefront UI is included.
 
 For macOS/Linux, use `python3.13 -m venv .venv`, `.venv/bin/python` instead of
 `.\.venv\Scripts\python.exe`, and `npm` instead of `npm.cmd`.
+
+## Release provenance
+
+The [release manifest](backend/sandbox/release_manifest.json) records the existing
+repository, historical commits, source paths, commit-pinned URLs and source hashes.
+It describes source identity without prescribing an investigation result.
+
+| Release | Historical commit | Source | Intended annotated tag |
+| --- | --- | --- | --- |
+| v1.0 | `a4eeea911604494f693e027cdaca5f2da2f78a7e` | [v1_0.py](https://github.com/AhmedRayann/supportbridge-agentathon/blob/a4eeea911604494f693e027cdaca5f2da2f78a7e/backend/sandbox/releases/v1_0.py) | `checkout-v1.0` |
+| v1.1 | `c8473e4fcdb3f71630301c13c37fbf742c2a14ef` | [v1_1.py](https://github.com/AhmedRayann/supportbridge-agentathon/blob/c8473e4fcdb3f71630301c13c37fbf742c2a14ef/backend/sandbox/releases/v1_1.py) | `checkout-v1.1` |
+
+Both tags were absent locally and on `origin` when checked during 1B-C. They have
+not been created or pushed by the coding agent; human publication and peeled
+target verification remain pending. Tag instructions and the future repository
+retrieval specification are in [Repository provenance](docs/REPOSITORY_PROVENANCE.md).
+The running FastAPI application neither calls Git nor exposes a manifest endpoint.
+With an exported backend lacking `.git`, history-dependent tests skip while
+manifest, checkout, validation and health tests continue to run.
 
 ## Environment and secrets
 
@@ -229,9 +249,10 @@ This path is prepared but has not been deployed or verified.
 Actual local commands and outcomes are recorded in
 [`docs/MILESTONE_1A_RESULTS.md`](docs/MILESTONE_1A_RESULTS.md) and
 [`docs/MILESTONE_1B_A_RESULTS.md`](docs/MILESTONE_1B_A_RESULTS.md), with the latest
-release verification in [`docs/MILESTONE_1B_B_RESULTS.md`](docs/MILESTONE_1B_B_RESULTS.md).
+release verification in [`docs/MILESTONE_1B_B_RESULTS.md`](docs/MILESTONE_1B_B_RESULTS.md)
+and provenance checks in [`docs/MILESTONE_1B_C_RESULTS.md`](docs/MILESTONE_1B_C_RESULTS.md).
 
-Milestones 1A and 1B-A are participant-confirmed complete. Milestone 1B-B stops at
-a tested v1.1 release ready for human review and a separate commit. No commits,
-pushes, deployments, release tags or final manifest are created in this assignment.
-Provenance and two-release production verification remain a separate assignment.
+Milestones 1A, 1B-A and 1B-B are participant-confirmed complete. The 1B-C provenance
+artifacts are ready for human review; tag publication and remote target checks
+remain pending. No commits, pushes, deployments or tags are performed by the
+coding agent in this assignment. Stop here before the next milestone.

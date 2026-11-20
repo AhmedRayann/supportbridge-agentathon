@@ -2,9 +2,11 @@
 
 **Locked:** 20 November 2026 (PKT). Registration confirmed complete by participant.  
 **Status:** Approved implementation baseline. Completed work and deployment status are recorded in the milestone results documents.
-**Owner clarification:** Milestones 1A and 1B-A are confirmed complete, committed,
-deployed and production-tested by the participant at
-https://supportbridge-agentathon.vercel.app/. Current assignment: **Milestone 1B-B only**.
+**Owner clarification:** Milestones 1A, 1B-A and 1B-B are confirmed complete,
+committed, deployed and production-tested by the participant at
+https://supportbridge-agentathon.vercel.app/, including eight checkout requests
+run with PowerShell after the local 1B-B report. Current assignment: **Milestone 1B-C only**.
+Prepare provenance artifacts and tag instructions; the human will create/push tags after review.
 The synthetic-environment decisions in section C and phased gates in section O
 supersede earlier release naming and the undivided 1B assignment. This blueprint
 is internal development material, excluded from runtime investigation tools.
@@ -81,7 +83,7 @@ Preserve genuine history in the existing SupportBridge repository; do not create
 
 1. **1B-A:** correctly functioning v1.0, independent oracle and tests; review before a neutral baseline commit such as `feat: add checkout quote service`. No commits, tags or deployment by the coding agent during this assignment.
 2. **1B-B:** add v1.1 as a normal pricing-calculation refactor in a distinct commit, e.g. `refactor: streamline checkout pricing calculations`; preserve v1.0 as an independently executable implementation. No diagnosis in comments or commit messages.
-3. **1B-C:** record real source SHAs, create `checkout-v1.0` and `checkout-v1.1` references only after their release commits exist, package immutable artifacts from actual source, and build/test `release_manifest.json` mapping release ID → source SHA → artifact hash. Verify both APIs on Vercel. Do not fabricate commits, diffs, references or manifests.
+3. **1B-C:** verify real source SHAs, ancestry, historical source and unchanged packaged calculation modules; record a neutral `release_manifest.json` mapping release ID → source SHA/path/URL → canonical source hash. Check tag state and document exact annotated-tag commands for human publication after review. Do not create/push/delete/overwrite tags or modify commits in this assignment. Preserve the distinction between participant-confirmed production checks and independently executed provenance/local checks; no fabricated history or deployment success.
 
 The participant supplied the actual 1B-A baseline commit
 `a4eeea911604494f693e027cdaca5f2da2f78a7e`. During 1B-B, preserve v1.0 source and
@@ -90,6 +92,23 @@ and use straightforward parallel calculation modules for comparison. Do not
 restructure the baseline or rewrite history. Runtime provenance packaging and
 release references are still the separate 1B-C assignment.
 
+The approved v1.1 historical commit is `c8473e4fcdb3f71630301c13c37fbf742c2a14ef`.
+The intended annotated references are `checkout-v1.0` → the v1.0 commit and
+`checkout-v1.1` → the v1.1 commit, never a later HEAD. The manifest's `tag` field
+names the intended reference without claiming it has been published. Validate
+annotated tags using their peeled commit targets, not tag-object SHAs. An existing
+tag must never be overwritten, even when the latest commit looks convenient.
+
+**Manifest schema v1:** top-level `schema_version`, `repository` (`owner`, `name`)
+and `releases` keyed by exact release identifiers. Each release contains only
+`commit_sha`, `tag`, `source_path`, canonical full-SHA `source_url` and
+`source_sha256`. Hash the exact historical Git source blob; normalize CRLF to LF
+when comparing a Windows working copy. These hashes identify the packaged Python
+calculation files, not the entire deployment or dependency environment. Tests
+verify module/dispatch correspondence and historical/current source equality.
+Do not add diagnoses, expected failures, scenarios, oracle details or outcomes.
+No new HTTP endpoint or runtime Git dependency is needed.
+
 Tests must call actual implementations. Keep the oracle independent of checkout imports, helpers, models and constants. Its expected calculations and deterministic response comparison run in the Python host; its source and internal assertions are never available to runtime LLM tools.
 
 ### No-spoiler investigation boundary and portability
@@ -97,6 +116,21 @@ Tests must call actual implementations. Keep the oracle independent of checkout 
 The public README transparently identifies synthetic checkout data and incidents. Agents must discover hypotheses through ordinary source/history and live behavior, without diagnosis spoilers in release labels, commit messages, source comments, filenames, prompts, runtime-accessible documentation or complaints. Internal development documentation may describe the controlled demonstration, but must be excluded from runtime access.
 
 Future repository adapters must enforce a strict Python allowlist of checkout-related source files under configurable `DEMO_SOURCE_PREFIX` (initially `backend/sandbox/`). Restrict commit queries to that source scope and filter diff/file/history payloads before exposing them; a comparison must not leak other files from a mixed commit. Normalize paths, reject traversal, use pinned release reads and deny unscoped history. Explicitly exclude root `AGENTS.md`, this blueprint, other internal docs, `backend/oracle/`, tests, `eval/`, known diagnoses and hidden expectations. Enforce in tools, not only prompts. These adapters are not part of 1B-A.
+
+The exact initial source retrieval list is the two release files above plus
+`backend/sandbox/models.py` and `backend/sandbox/router.py`. No other paths are
+currently needed: package initializers are docstrings only, and `backend/main.py`
+is unrelated application/health registration glue. This specification is detailed
+in `docs/REPOSITORY_PROVENANCE.md`; it does not enforce access by itself. In future
+tools, strip excluded file metadata/patches/content before model exposure. Internal
+milestone reports and this specification are excluded as well. Do not build these
+tools during 1B-C.
+
+Use the full-SHA GitHub comparison URL recorded in the provenance specification.
+The actual v1.1 commit adds a parallel versioned file; it does not edit v1.0's
+calculation. Investigators must retrieve both pinned sources and compare their
+real logic/line numbers. Do not manufacture a one-line historical diff or rewrite
+old source to make presentation easier.
 
 Load future repository integration from backend-only configuration: `DEMO_GITHUB_OWNER`, `DEMO_GITHUB_REPO`, `DEMO_SOURCE_PREFIX`, `SANDBOX_API_BASE_URL`, and pinned `DEMO_RELEASE_V1_0_REF` / `DEMO_RELEASE_V1_1_REF` values resolved from real releases. Validate configured destinations/paths at the host boundary. Do not scatter hardcoded repository URLs or paths through agent code. This permits moving checkout to another repository later without rewriting agent architecture; no extra repository or infrastructure now.
 
@@ -407,9 +441,9 @@ Runtime is **not measured**; do not insist on these timings. If model latency is
 
 **Milestone 1B-A complete (participant-confirmed):** v1.0 calculations, strict quote API, independent oracle and tests were committed as `a4eeea911604494f693e027cdaca5f2da2f78a7e`, deployed and tested against the production API. Earlier local-only statements in the historical results are superseded by the participant's confirmation.
 
-**Current assignment — Milestone 1B-B only:** independently executable v1.1 pricing refactor, static dispatch for both releases, preserved strict validation, unchanged v1.0/oracle, comprehensive calculations/API/policy/source-preservation/import/health tests and local HTTP verification. Record outcomes in `docs/MILESTONE_1B_B_RESULTS.md`; prepare a separate neutral release commit for human review without committing it. No push, deploy, tags, final manifest, frontend work, agents, model integrations, investigation tools, persistence or other milestones. Stop for review.
+**Milestone 1B-B complete (participant-confirmed):** v1.1 was committed as `c8473e4fcdb3f71630301c13c37fbf742c2a14ef`, deployed successfully on Vercel and verified by the participant with eight PowerShell checkout requests across both releases. Append that later confirmation to the 1B-B report without rewriting the original 220-test/local verification record.
 
-**Milestone 1B-C (future):** actual SHAs/tags, source/artifact correspondence and manifest tests, both deployed checkout APIs. Do not begin it during 1B-B.
+**Current assignment — Milestone 1B-C only:** verify actual SHAs/ancestry/source/tag state, add the neutral source-identity/hash manifest and focused tests, document exact future retrieval paths and safe human annotated-tag commands, update README/status and record actual outcomes in `docs/MILESTONE_1B_C_RESULTS.md`. Skip only Git-dependent tests when metadata/history is unavailable. No source/oracle/API changes, commit, push, tag mutation, deploy, Vercel/frontend changes, GitHub clients, agents, model integrations or next milestone. Stop for review; tag publication and peeled remote verification remain human follow-up.
 
 ## P. Primary reference URLs (initially verified 18 November 2026; revalidate if configurations change)
 

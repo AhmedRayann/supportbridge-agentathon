@@ -151,3 +151,22 @@ No other local test or dependency issues remain. Real release SHAs/tags, final
 source/artifact manifest and two-release production verification remain for
 1B-C after review and a real v1.1 commit. No agents, models, GitHub tools, storage,
 frontend UI, payments or other milestones were implemented. Stop at 1B-B.
+
+## Post-implementation update — 21 November 2026 (PKT)
+
+After the original 1B-B local implementation and 220-test verification recorded
+above, the participant committed v1.1 as
+`c8473e4fcdb3f71630301c13c37fbf742c2a14ef` and confirmed successful Vercel
+deployment at <https://supportbridge-agentathon.vercel.app/>.
+
+The participant then used PowerShell to run eight successful production checkout
+requests across v1.0 and v1.1. The v1.0 baseline commit is
+`a4eeea911604494f693e027cdaca5f2da2f78a7e`. These are participant-confirmed
+production checks performed after the earlier local report, not independently
+re-executed production checks by the coding agent in 1B-C.
+
+All earlier local findings, commands and results above are preserved as history.
+Independent local Git/source/URL/manifest checks during 1B-C are recorded in
+`docs/MILESTONE_1B_C_RESULTS.md`. Neither checkout release nor the oracle was
+modified. Historical tag creation/push and peeled remote verification remain
+pending human review and publication.

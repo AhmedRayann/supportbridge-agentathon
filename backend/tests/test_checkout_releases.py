@@ -1,4 +1,4 @@
-import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import httpx
@@ -141,17 +141,12 @@ def test_release_behavior_across_all_discount_percentages(
     "source",
     ["backend/sandbox/releases/v1_0.py", "backend/oracle/shipping_contract.py"],
 )
-def test_preserved_source_matches_v1_0_baseline(source: str) -> None:
+def test_preserved_source_matches_v1_0_baseline(
+    source: str, release_git_history: Callable[..., bytes]
+) -> None:
     root = Path(__file__).resolve().parents[2]
-    baseline = subprocess.check_output(
-        [
-            "git",
-            "-c",
-            f"safe.directory={root.as_posix()}",
-            "show",
-            f"a4eeea911604494f693e027cdaca5f2da2f78a7e:{source}",
-        ],
-        cwd=root,
+    baseline = release_git_history(
+        "show", f"a4eeea911604494f693e027cdaca5f2da2f78a7e:{source}"
     )
     assert (root / source).read_bytes().replace(b"\r\n", b"\n") == baseline.replace(
         b"\r\n", b"\n"

@@ -154,3 +154,15 @@ source/artifact manifest and check both APIs in production. Future repository
 tools must enforce the documented no-spoiler and destination/path boundaries.
 
 Stop at Milestone 1B-A for human review.
+
+## Post-implementation update — 21 November 2026 (PKT)
+
+During the 1B-C assignment, the participant confirmed both checkout releases were
+committed, deployed successfully to Vercel and production-verified using PowerShell.
+Eight checkout requests across v1.0 and v1.1 passed after the original local
+reports. Historical v1.0 commit: `a4eeea911604494f693e027cdaca5f2da2f78a7e`;
+historical v1.1 commit: `c8473e4fcdb3f71630301c13c37fbf742c2a14ef`.
+This later participant confirmation supersedes the original pending-publication
+status without changing the local commands or results recorded above.
+Independent 1B-C provenance checks are recorded separately; tags remain pending
+human publication and peeled remote verification.

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "repository": {
+    "owner": "AhmedRayann",
+    "name": "supportbridge-agentathon"
+  },
+  "releases": {
+    "v1.0": {
+      "commit_sha": "a4eeea911604494f693e027cdaca5f2da2f78a7e",
+      "tag": "checkout-v1.0",
+      "source_path": "backend/sandbox/releases/v1_0.py",
+      "source_url": "https://github.com/AhmedRayann/supportbridge-agentathon/blob/a4eeea911604494f693e027cdaca5f2da2f78a7e/backend/sandbox/releases/v1_0.py",
+      "source_sha256": "1f3c5449179b230ac37d8e7fd12434c070ff4d497c8a703b70f64045ff66a572"
+    },
+    "v1.1": {
+      "commit_sha": "c8473e4fcdb3f71630301c13c37fbf742c2a14ef",
+      "tag": "checkout-v1.1",
+      "source_path": "backend/sandbox/releases/v1_1.py",
+      "source_url": "https://github.com/AhmedRayann/supportbridge-agentathon/blob/c8473e4fcdb3f71630301c13c37fbf742c2a14ef/backend/sandbox/releases/v1_1.py",
+      "source_sha256": "d630bbc1dc139deed48c75eb88620101d64e497556e867d1802142afe6f734e0"
+    }
+  }
+}
