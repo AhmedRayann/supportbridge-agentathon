@@ -1,5 +1,12 @@
 # Milestone 1B-A — checkout v1.0
 
+**Current status:** the participant confirmed 1B-A was committed, deployed and
+tested against the production checkout API at
+<https://supportbridge-agentathon.vercel.app/>. The supplied baseline SHA
+`a4eeea911604494f693e027cdaca5f2da2f78a7e` exists locally and was HEAD before 1B-B
+work began. The original local-only verification record below is historical and
+its pending-commit/deployment statements are superseded by this confirmation.
+
 Local implementation is complete and ready for human review. Only `v1.0` is
 implemented. No commit, push, deployment, release tag or manifest was created.
 No v1.1 module or behavioral change was introduced.

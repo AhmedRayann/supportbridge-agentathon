@@ -8,7 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from backend.oracle.shipping_contract import compare_quote
-from backend.sandbox.models import QuoteRequest
+from backend.sandbox.models import QuoteRequest, ReleaseId
 from backend.sandbox.releases.v1_0 import calculate_quote
 
 # subtotal, percentage, discount, merchandise after discount, shipping, total
@@ -34,9 +34,11 @@ QUOTE_CASES = [
 ]
 
 
-def quote_body(subtotal: int, discount: int) -> dict[str, object]:
+def quote_body(
+    subtotal: int, discount: int, release: ReleaseId = "v1.0"
+) -> dict[str, object]:
     return {
-        "release": "v1.0",
+        "release": release,
         "subtotal_cents": subtotal,
         "discount_percent": discount,
     }
@@ -109,7 +111,7 @@ INVALID_FIELDS = [
     ("discount_percent", "15"),
     ("discount_percent", False),
     ("discount_percent", None),
-    ("release", "v1.1"),
+    ("release", "v1.2"),
     ("release", "previous"),
     ("release", "current"),
     ("release", "working"),
@@ -122,11 +124,12 @@ INVALID_FIELDS = [
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize("release", ["v1.0", "v1.1"])
 @pytest.mark.parametrize("field,value", INVALID_FIELDS)
 async def test_invalid_quote_input(
-    client: httpx.AsyncClient, field: str, value: object
+    client: httpx.AsyncClient, release: ReleaseId, field: str, value: object
 ) -> None:
-    body = {**quote_body(11_000, 15), field: value}
+    body = {**quote_body(11_000, 15, release), field: value}
     with pytest.raises(ValidationError):
         QuoteRequest.model_validate(body)
 
@@ -136,9 +139,12 @@ async def test_invalid_quote_input(
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize("release", ["v1.0", "v1.1"])
 @pytest.mark.parametrize("field", ["release", "subtotal_cents", "discount_percent"])
-async def test_missing_quote_fields(client: httpx.AsyncClient, field: str) -> None:
-    body = quote_body(11_000, 15)
+async def test_missing_quote_fields(
+    client: httpx.AsyncClient, release: ReleaseId, field: str
+) -> None:
+    body = quote_body(11_000, 15, release)
     del body[field]
     response = await client.post("/svc/api/sandbox/quote", json=body)
     assert response.status_code == 422
@@ -155,7 +161,8 @@ async def test_malformed_quote_body(client: httpx.AsyncClient, body: str) -> Non
     assert response.status_code == 422
 
 
-def test_service_root_import_and_quote() -> None:
+@pytest.mark.parametrize("release,total", [("v1.0", 9_350), ("v1.1", 10_100)])
+def test_service_root_import_and_quote(release: ReleaseId, total: int) -> None:
     # Vercel imports main:app with backend/ as the service root.
     result = subprocess.run(
         [
@@ -175,20 +182,24 @@ async def check():
     ) as client:
         response = await client.post(
             "/svc/api/sandbox/quote",
-            json={"release": "v1.0", "subtotal_cents": 11000, "discount_percent": 15},
+            json={"release": sys.argv[1], "subtotal_cents": 11000,
+                  "discount_percent": 15},
         )
         assert response.status_code == 200
         print(response.text)
 
 asyncio.run(check())
 """,
+            release,
         ],
         cwd=Path(__file__).resolve().parents[1],
         capture_output=True,
         text=True,
         check=True,
     )
-    assert json.loads(result.stdout)["total_cents"] == 9_350
+    actual = json.loads(result.stdout)
+    assert actual["release"] == release
+    assert actual["total_cents"] == total
 
 
 def test_oracle_imports_no_checkout_code() -> None:

@@ -2,8 +2,9 @@
 
 **Locked on 2026-11-20.** Applies to Codex and any coding assistant operating in this repository.
 
-**Owner clarification:** Milestone 1A is complete per the participant. The current
-assignment is **Milestone 1B-A only**. The release/history/tool-access requirements
+**Owner clarification:** Milestones 1A and 1B-A are complete, deployed and tested
+per the participant. The current assignment is **Milestone 1B-B only**.
+The release/history/tool-access requirements
 below incorporate the owner's synthetic-environment decisions. This is internal
 development documentation and must never be exposed by runtime investigation tools.
 
@@ -35,7 +36,7 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 - Frontend: **Next.js App Router, React, TypeScript, Tailwind**.
 - Backend: **Python 3.12+, FastAPI, Pydantic v2**; type and validate all AI-visible tool arguments.
 - Agents and orchestration: **LangGraph Python** with bounded routing and explicit agent roles.
-- Checkout sandbox: actual Python functions exposed via controlled HTTP endpoints; eventual releases `v1.0` and `v1.1` with real pinned source provenance. Only `v1.0` exists in 1B-A.
+- Checkout sandbox: actual Python functions exposed via controlled HTTP endpoints for `v1.0` and `v1.1`; final pinned source/artifact provenance is deferred to 1B-C. Preserve the deployed v1.0 baseline during 1B-B.
 - Storage: in-memory test harness locally; **durable hosted storage** for anonymous sessions, investigation state, evidence, review decisions and shared public run budgets. Do not depend on serverless function memory for persistence.
 - First deployment proof: public Next.js page calls the **actual FastAPI `/health` endpoint** on Vercel. Verify incognito. Use official Next.js/FastAPI starter guidance; use two Vercel projects and a same-origin proxy if combined deployment fails.
 
@@ -53,12 +54,13 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 
 - Rule: free shipping when **pre-discount** merchandise subtotal is **at least $100.00**; otherwise shipping is **$7.50**. Use **integer cents**.
 - Initial release `v1.0`: $110 with 15% discount → **$93.50**.
-- Internal future demonstration plan for `v1.1` (1B-B only): same cart → **$101.00** through the planned pricing refactor. Do not implement this difference in 1B-A or disclose it through runtime-accessible material.
+- Internal demonstration plan for `v1.1` (authorized in 1B-B): same cart → **$101.00**, using discounted merchandise for shipping eligibility. The approved policy and oracle still use the original subtotal. Do not disclose this discrepancy through runtime-accessible explanations.
 - Healthy controls: $110 at 5% → **$104.50** on both; $80 at 15% → **$75.50** on both; $100 original subtotal meets inclusive free-shipping threshold.
 - Build genuine calculations, never canned values. The final MVP has two independently executable releases; 1B-A implements only `v1.0`. Keep the business-policy oracle independent; it must not import or reuse checkout code, helpers, constants or models to determine expectations.
 - Maintain real Git commit history and SHA/manifest correspondence; do not fabricate commit links. Never expose evaluation answer keys to runtime agents.
 - Use exact release identifiers `v1.0` and, once implemented, `v1.1`; never use `previous`, `current`, `working` or `buggy` as identifiers. Use `backend/sandbox/releases/v1_0.py` and later `v1_1.py`. Tags are `checkout-v1.0` and `checkout-v1.1`, created only after actual release commits exist.
 - Implement phases separately: **1B-A** correct v1.0 + independent oracle + tests; after review a neutral baseline commit such as `feat: add checkout quote service`. **1B-B** independently executable v1.1 in a separate, neutral refactor commit such as `refactor: streamline checkout pricing calculations`. **1B-C** real SHAs, tags, verified source/artifact manifest and both deployed APIs. Never manufacture history or prefill release provenance.
+- The participant-supplied v1.0 baseline commit is `a4eeea911604494f693e027cdaca5f2da2f78a7e`. During 1B-B do not modify `backend/sandbox/releases/v1_0.py` or the oracle implementation. Preserve all existing v1.0 calculations, strict validation, health behavior and deployment settings. Extend the literal release allowlist and static dispatch only to `v1.1`; keep calculation differences inspectable in the parallel versioned modules.
 - No diagnosis spoilers in release descriptions, source comments, filenames, commit messages, prompts or customer complaints. Internal documentation and evaluation expectations must stay outside all runtime tool access. The public README must openly identify synthetic checkout data and incidents without revealing a planned diagnosis.
 - Keep the checkout in this repository for the MVP. Future integrations must read backend configuration `DEMO_GITHUB_OWNER`, `DEMO_GITHUB_REPO`, `DEMO_SOURCE_PREFIX`, `SANDBOX_API_BASE_URL`, and pinned `DEMO_RELEASE_V1_0_REF` / `DEMO_RELEASE_V1_1_REF`; avoid hardcoded repository URLs throughout agents. These settings do not implement or enable a repository tool in 1B-A.
 - v1.0 accepts strict integer subtotals 0–100,000,000 cents and whole-number discounts 0–100 inclusive. Round the merchandise discount half up to a cent using integer arithmetic, then subtract it. A zero subtotal still incurs $7.50 shipping under the stated below-threshold rule; a 100% discount never changes eligibility based on the original subtotal.
@@ -96,4 +98,4 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 - Add pytest for checkout variants, independent oracle, thresholds and missing-input behaviors; relevant frontend tests for UI changes; lint and type checks as configured.
 - Evaluate positive regression, healthy control, incomplete evidence, unavailable API, stale policy, malicious ticket instructions, denied write operation, session isolation, repeated approval and model budget exhaustion.
 - For every change, report which commands/tests were **actually executed**, output summaries, failures, security considerations and deployment status. Never claim a tool call, test or deployment succeeded unless verified.
-- **Current assignment: Milestone 1B-A only.** Milestone 1A is complete. Implement correct v1.0 checkout at `POST /svc/api/sandbox/quote`, independent host-only oracle, strict validation and tests. Preserve health endpoints, dependencies, Next.js routing and working Vercel settings. No `v1_1.py`, manifest, tags, Git commits/pushes/deployment, payment ledger, agents, model integrations, retrieval tools, storage, approval workflow or dashboard in this assignment. Stop after local verification for human review; do not begin 1B-B.
+- **Current assignment: Milestone 1B-B only.** Implement independently executable `v1_1.py` using the established discount rounding and discounted merchandise subtotal for shipping eligibility; support exactly `v1.0` and `v1.1` on the existing quote route. Leave v1.0 source and the independent policy oracle unchanged. Test both releases, oracle agreement/mismatches, strict inputs, health, service-root import mode, source preservation and actual local HTTP. Record actual outcomes in `docs/MILESTONE_1B_B_RESULTS.md`. No commits, pushes, deployment, release tags, final manifest, payment ledger, agents, integrations, repository tools, storage, approval workflow or frontend work. Stop for human review; do not begin 1B-C.

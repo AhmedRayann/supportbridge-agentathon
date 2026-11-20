@@ -2,8 +2,8 @@
 
 SupportBridge will investigate customer-reported regressions in a fictional
 commerce application. Milestone 1A provides a deployed Next.js frontend and Python
-health endpoint. **Milestone 1B-A** adds a local, testable checkout quote service
-for release **v1.0**.
+health endpoint. The synthetic checkout quote service supports releases **v1.0**
+and **v1.1** through a shared API contract.
 
 The checkout application and any customer incidents used in the demonstration
 are synthetic. There are no real customers, payment operations, tax, currency
@@ -12,14 +12,15 @@ database persistence are not implemented yet.
 
 Milestone 1A is complete at <https://supportbridge-agentathon.vercel.app/>:
 the participant confirmed a working frontend and Python health response.
-`/health` is application liveness only. The new checkout endpoint has **not been
-deployed or verified in production** during this assignment.
+`/health` is application liveness only. The participant also confirmed v1.0 was
+committed, deployed and production-tested. The new v1.1 release is **local only**
+and has not been deployed or verified in production during this assignment.
 
 ## Files and request path
 
 - `frontend/`: Next.js App Router, React, TypeScript, Tailwind CSS and health client tests.
 - `backend/main.py`: FastAPI application with a Pydantic v2 health response.
-- `backend/sandbox/`: strict quote models, release dispatch and v1.0 calculations.
+- `backend/sandbox/`: strict quote models, release dispatch and versioned calculations.
 - `backend/oracle/`: independent host-side policy calculations and comparisons.
 - `backend/tests/`: pytest health checks.
 - `vercel.json`: combined Vercel Services deployment and public routing.
@@ -105,11 +106,14 @@ Response:
 All amounts are integer USD cents. Subtotals must be 0–100,000,000 cents and
 discounts must be whole percentages 0–100 inclusive. Round the merchandise
 discount half up to the nearest cent using integer arithmetic, then subtract it.
-Shipping is free for original merchandise subtotals of at least 10,000 cents;
+The business policy specifies free shipping for original merchandise subtotals
+of at least 10,000 cents;
 otherwise it is 750 cents. Discounts do not apply to shipping. Zero subtotal is
 valid and incurs 750 cents shipping; 100% discount does not change eligibility.
 
-Only `v1.0` is currently supported. Missing/extra fields, unsupported releases,
+Exactly `v1.0` and `v1.1` are supported locally. Set `release` to select the
+implementation; the request/response fields are the same for both. The example
+above uses v1.0. Missing/extra fields, unsupported releases,
 negative/out-of-range values, booleans, numeric strings and floats return
 structured HTTP 422 errors. Requests calculate genuine quotes without external
 network calls or side effects. Reloading the frontend still performs only its
@@ -224,9 +228,10 @@ This path is prepared but has not been deployed or verified.
 
 Actual local commands and outcomes are recorded in
 [`docs/MILESTONE_1A_RESULTS.md`](docs/MILESTONE_1A_RESULTS.md) and
-[`docs/MILESTONE_1B_A_RESULTS.md`](docs/MILESTONE_1B_A_RESULTS.md).
+[`docs/MILESTONE_1B_A_RESULTS.md`](docs/MILESTONE_1B_A_RESULTS.md), with the latest
+release verification in [`docs/MILESTONE_1B_B_RESULTS.md`](docs/MILESTONE_1B_B_RESULTS.md).
 
-Milestone 1A is participant-confirmed complete. Milestone 1B-A stops at a tested
-v1.0 baseline ready for human review and a distinct commit. No commits, pushes,
-deployments, release tags or manifest are created in this assignment. Subsequent
-release work and provenance/deployment verification require separate assignments.
+Milestones 1A and 1B-A are participant-confirmed complete. Milestone 1B-B stops at
+a tested v1.1 release ready for human review and a separate commit. No commits,
+pushes, deployments, release tags or final manifest are created in this assignment.
+Provenance and two-release production verification remain a separate assignment.

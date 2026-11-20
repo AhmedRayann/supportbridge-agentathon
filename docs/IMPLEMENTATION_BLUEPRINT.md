@@ -2,8 +2,9 @@
 
 **Locked:** 20 November 2026 (PKT). Registration confirmed complete by participant.  
 **Status:** Approved implementation baseline. Completed work and deployment status are recorded in the milestone results documents.
-**Owner clarification:** Milestone 1A is confirmed complete by the participant at
-https://supportbridge-agentathon.vercel.app/. Current assignment: **Milestone 1B-A only**.
+**Owner clarification:** Milestones 1A and 1B-A are confirmed complete, committed,
+deployed and production-tested by the participant at
+https://supportbridge-agentathon.vercel.app/. Current assignment: **Milestone 1B-B only**.
 The synthetic-environment decisions in section C and phased gates in section O
 supersede earlier release naming and the undivided 1B assignment. This blueprint
 is internal development material, excluded from runtime investigation tools.
@@ -62,7 +63,7 @@ No arbitrary repository debugging, arbitrary URL fetching, model-generated runna
 
 **v1.0 input and rounding contract:** Strict integer subtotals 0–100,000,000 cents (USD 1,000,000.00 maximum); strict whole-number discount percentages 0–100 inclusive. Reject booleans, floats, numeric strings, missing fields and extra fields. Compute the discount as the nearest whole cent, with half-cent ties rounded up, then subtract it from merchandise. Integer arithmetic only. Zero subtotal is valid and incurs USD 7.50 shipping. A 100% discount applies only to merchandise and does not change shipping eligibility.
 
-**Sample cart (internal development plan):** subtotal USD 110.00; 15% discount = USD 16.50; merchandise after discount USD 93.50. Initial release `v1.0` calculates free shipping from USD 110.00 and returns total **USD 93.50**. The future `v1.1` pricing refactor in 1B-B will introduce the planned difference, returning **USD 101.00**. Do not introduce it during 1B-A or expose this plan through runtime tools, prompts or customer complaints.
+**Sample cart (internal development plan):** subtotal USD 110.00; 15% discount = USD 16.50; merchandise after discount USD 93.50. Initial release `v1.0` calculates free shipping from USD 110.00 and returns total **USD 93.50**. The authorized `v1.1` pricing refactor in 1B-B uses discounted merchandise for eligibility and returns **USD 101.00**. Preserve the approved business policy and independent oracle unchanged; they must detect policy mismatches. Never expose this explanation through runtime tools, prompts, source comments or customer complaints.
 
 **Control A:** Same USD 110.00 cart with 5% discount → USD 104.50 on *both* releases; no added shipping.  
 **Control B:** USD 80.00 cart with 15% discount → USD 68.00 merchandise + USD 7.50 shipping = **USD 75.50** on *both* releases.  
@@ -74,13 +75,20 @@ No arbitrary repository debugging, arbitrary URL fetching, model-generated runna
 
 ### Version provenance
 
-Use exact application release identifiers **`v1.0`** and **`v1.1`**. Do not use `previous`, `current`, `working` or `buggy` as release identifiers. Version-specific calculation modules are `backend/sandbox/releases/v1_0.py` and, only after 1B-B, `v1_1.py`. Release labels and descriptions must read like an ordinary software product.
+Use exact application release identifiers **`v1.0`** and **`v1.1`**. Do not use `previous`, `current`, `working` or `buggy` as release identifiers. Version-specific calculation modules are `backend/sandbox/releases/v1_0.py` and `v1_1.py` (introduced in 1B-B). Release labels and descriptions must read like an ordinary software product.
 
 Preserve genuine history in the existing SupportBridge repository; do not create another repository for the MVP:
 
 1. **1B-A:** correctly functioning v1.0, independent oracle and tests; review before a neutral baseline commit such as `feat: add checkout quote service`. No commits, tags or deployment by the coding agent during this assignment.
 2. **1B-B:** add v1.1 as a normal pricing-calculation refactor in a distinct commit, e.g. `refactor: streamline checkout pricing calculations`; preserve v1.0 as an independently executable implementation. No diagnosis in comments or commit messages.
 3. **1B-C:** record real source SHAs, create `checkout-v1.0` and `checkout-v1.1` references only after their release commits exist, package immutable artifacts from actual source, and build/test `release_manifest.json` mapping release ID → source SHA → artifact hash. Verify both APIs on Vercel. Do not fabricate commits, diffs, references or manifests.
+
+The participant supplied the actual 1B-A baseline commit
+`a4eeea911604494f693e027cdaca5f2da2f78a7e`. During 1B-B, preserve v1.0 source and
+oracle implementation against that commit, keep v1.0 independently executable,
+and use straightforward parallel calculation modules for comparison. Do not
+restructure the baseline or rewrite history. Runtime provenance packaging and
+release references are still the separate 1B-C assignment.
 
 Tests must call actual implementations. Keep the oracle independent of checkout imports, helpers, models and constants. Its expected calculations and deterministic response comparison run in the Python host; its source and internal assertions are never available to runtime LLM tools.
 
@@ -176,13 +184,17 @@ Suggested API contracts (names subject to adjustment in the first code milestone
 | `POST /svc/api/sandbox/quote` | Real sandbox release quote operation |
 | `GET /svc/api/sandbox/payment-events` | Synthetic payment ledger, scoped |
 
-**1B-A checkout contract:** `POST /svc/api/sandbox/quote` accepts
+**Checkout contract (introduced in 1B-A):** `POST /svc/api/sandbox/quote` accepts
 `{"release":"v1.0","subtotal_cents":11000,"discount_percent":15}`.
 Returns integer fields `subtotal_cents`, `discount_percent`, `discount_cents`,
 `discounted_subtotal_cents`, `shipping_cents`, `total_cents`, plus `release`.
 Only `v1.0` is accepted in 1B-A; unsupported identifiers and invalid inputs return
 structured HTTP 422 validation errors. Dispatch uses an explicit release allowlist,
-not dynamic imports or external targets. The same contract gains `v1.1` in 1B-B.
+not dynamic imports or external targets. In 1B-B the same contract accepts exactly
+`v1.0` and `v1.1`, with unchanged amount/discount limits and rounding. v1.1 uses
+discounted merchandise for shipping eligibility. Oracle mismatches for shipping
+and total are expected under crossing-threshold inputs and must be asserted as
+passing tests; do not relax the authoritative policy to hide them.
 The oracle compares returned amounts with expectations derived from trusted input;
 release identity/provenance remains a separate host check. No payment ledger in 1B-A.
 
@@ -393,9 +405,11 @@ Runtime is **not measured**; do not insist on these timings. If model latency is
 
 **Milestone 1A is complete only when:** (a) the frontend locally calls a real Python health endpoint, (b) backend tests pass, (c) no secrets are committed, and (d) the frontend publicly calls Python on a verified production Vercel URL. If the participant hasn't connected GitHub/Vercel yet, provide exact manual instructions and mark public deployment **pending**—never fabricate success.
 
-**Current assignment — Milestone 1B-A only:** implement v1.0 calculations, strict request/response models, actual quote endpoint, independent policy oracle and normal/boundary/rounding/invalid-input/API/health tests. Prove local HTTP execution; update this blueprint and root instructions with the synthetic-environment decisions. Prepare a distinct baseline commit for human review without committing it. No v1.1 module/behavior, Git references, manifest, deployment, agents, model clients, investigation/retrieval tools, payment ledger, persistence, approval workflow or dashboard. Stop for review.
+**Milestone 1B-A complete (participant-confirmed):** v1.0 calculations, strict quote API, independent oracle and tests were committed as `a4eeea911604494f693e027cdaca5f2da2f78a7e`, deployed and tested against the production API. Earlier local-only statements in the historical results are superseded by the participant's confirmation.
 
-**Milestone 1B-B (future, separate assignment):** independently executable v1.1 pricing refactor, meaningful source differences and a distinct neutral human-reviewed commit. **Milestone 1B-C (future):** actual SHAs/tags, source/artifact correspondence and manifest tests, both deployed checkout APIs. Do not start either phase during 1B-A.
+**Current assignment — Milestone 1B-B only:** independently executable v1.1 pricing refactor, static dispatch for both releases, preserved strict validation, unchanged v1.0/oracle, comprehensive calculations/API/policy/source-preservation/import/health tests and local HTTP verification. Record outcomes in `docs/MILESTONE_1B_B_RESULTS.md`; prepare a separate neutral release commit for human review without committing it. No push, deploy, tags, final manifest, frontend work, agents, model integrations, investigation tools, persistence or other milestones. Stop for review.
+
+**Milestone 1B-C (future):** actual SHAs/tags, source/artifact correspondence and manifest tests, both deployed checkout APIs. Do not begin it during 1B-B.
 
 ## P. Primary reference URLs (initially verified 18 November 2026; revalidate if configurations change)
 

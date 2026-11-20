@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-ReleaseId = Literal["v1.0"]
+ReleaseId = Literal["v1.0", "v1.1"]
 Cents = Annotated[int, Field(ge=0, le=100_000_000)]
 Percent = Annotated[int, Field(ge=0, le=100)]
 
