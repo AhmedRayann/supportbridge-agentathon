@@ -1,9 +1,14 @@
 # Milestone 1A verification
 
-Initial local verification on 20 November 2026 (PKT) is recorded below as history.
-The production packaging follow-up at the end records the subsequently reported
-deployment failure and prepared fix. The locked milestone's **public health gate
-remains open** pending push, redeployment and production/incognito verification.
+**Current status: Milestone 1A complete, confirmed by the participant.** Production
+is running at <https://supportbridge-agentathon.vercel.app/> with a successful
+frontend-to-Python health request and the response below. The earlier local tests
+and packaging failure/fix records are preserved below as historical evidence;
+their pending-deployment statements are superseded by the final confirmation.
+
+```json
+{"status":"ok","service":"supportbridge-api"}
+```
 
 ## Implemented files
 
@@ -176,3 +181,18 @@ Open the production page in incognito, confirm "Python API connected." and
 inspect its actual `/svc/api/health` request. Record the deployed commit and
 actual results before closing Milestone 1A. Production is **not yet verified
 fixed**. Stop here for review and redeployment; do not begin Milestone 1B.
+
+## Successful production confirmation
+
+In the Milestone 1B-A assignment, the participant confirmed that the Next.js
+frontend and Python FastAPI backend are deployed successfully at
+<https://supportbridge-agentathon.vercel.app/> and the live health endpoint returns
+`{"status":"ok","service":"supportbridge-api"}`. Milestone 1A is complete.
+This confirmation supersedes the historical packaging blocker above. It is
+participant-supplied verification; this coding turn did not repeat an incognito
+production browser check. A read-only web-tool attempt to open the live health
+URL was inaccessible to that tool and supplies no additional verification.
+
+The Milestone 1B-A checkout changes are local only and have not been pushed,
+deployed or verified in production. Their deployment status is separate from the
+completed Milestone 1A health deployment.

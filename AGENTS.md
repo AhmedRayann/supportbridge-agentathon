@@ -2,6 +2,11 @@
 
 **Locked on 2026-11-20.** Applies to Codex and any coding assistant operating in this repository.
 
+**Owner clarification:** Milestone 1A is complete per the participant. The current
+assignment is **Milestone 1B-A only**. The release/history/tool-access requirements
+below incorporate the owner's synthetic-environment decisions. This is internal
+development documentation and must never be exposed by runtime investigation tools.
+
 ## 1. Source of truth and working procedure
 
 - Read `docs/IMPLEMENTATION_BLUEPRINT.md` **before** changing the architecture or implementing a milestone. It defines the product, contracts, evaluation gates and frozen scope.
@@ -30,7 +35,7 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 - Frontend: **Next.js App Router, React, TypeScript, Tailwind**.
 - Backend: **Python 3.12+, FastAPI, Pydantic v2**; type and validate all AI-visible tool arguments.
 - Agents and orchestration: **LangGraph Python** with bounded routing and explicit agent roles.
-- Checkout sandbox: actual Python functions exposed via controlled HTTP endpoints, two pinned releases with real source provenance.
+- Checkout sandbox: actual Python functions exposed via controlled HTTP endpoints; eventual releases `v1.0` and `v1.1` with real pinned source provenance. Only `v1.0` exists in 1B-A.
 - Storage: in-memory test harness locally; **durable hosted storage** for anonymous sessions, investigation state, evidence, review decisions and shared public run budgets. Do not depend on serverless function memory for persistence.
 - First deployment proof: public Next.js page calls the **actual FastAPI `/health` endpoint** on Vercel. Verify incognito. Use official Next.js/FastAPI starter guidance; use two Vercel projects and a same-origin proxy if combined deployment fails.
 
@@ -47,16 +52,22 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 ## 5. Checkout, policy and provenance
 
 - Rule: free shipping when **pre-discount** merchandise subtotal is **at least $100.00**; otherwise shipping is **$7.50**. Use **integer cents**.
-- Correct previous release: $110 with 15% discount → **$93.50**.
-- Defective current release: same cart → **$101.00** because it incorrectly checks discounted subtotal.
+- Initial release `v1.0`: $110 with 15% discount → **$93.50**.
+- Internal future demonstration plan for `v1.1` (1B-B only): same cart → **$101.00** through the planned pricing refactor. Do not implement this difference in 1B-A or disclose it through runtime-accessible material.
 - Healthy controls: $110 at 5% → **$104.50** on both; $80 at 15% → **$75.50** on both; $100 original subtotal meets inclusive free-shipping threshold.
-- Implement two **executable behaviors**, not canned values. Keep the business-policy oracle independent; it must not import the checkout eligibility function under test.
+- Build genuine calculations, never canned values. The final MVP has two independently executable releases; 1B-A implements only `v1.0`. Keep the business-policy oracle independent; it must not import or reuse checkout code, helpers, constants or models to determine expectations.
 - Maintain real Git commit history and SHA/manifest correspondence; do not fabricate commit links. Never expose evaluation answer keys to runtime agents.
+- Use exact release identifiers `v1.0` and, once implemented, `v1.1`; never use `previous`, `current`, `working` or `buggy` as identifiers. Use `backend/sandbox/releases/v1_0.py` and later `v1_1.py`. Tags are `checkout-v1.0` and `checkout-v1.1`, created only after actual release commits exist.
+- Implement phases separately: **1B-A** correct v1.0 + independent oracle + tests; after review a neutral baseline commit such as `feat: add checkout quote service`. **1B-B** independently executable v1.1 in a separate, neutral refactor commit such as `refactor: streamline checkout pricing calculations`. **1B-C** real SHAs, tags, verified source/artifact manifest and both deployed APIs. Never manufacture history or prefill release provenance.
+- No diagnosis spoilers in release descriptions, source comments, filenames, commit messages, prompts or customer complaints. Internal documentation and evaluation expectations must stay outside all runtime tool access. The public README must openly identify synthetic checkout data and incidents without revealing a planned diagnosis.
+- Keep the checkout in this repository for the MVP. Future integrations must read backend configuration `DEMO_GITHUB_OWNER`, `DEMO_GITHUB_REPO`, `DEMO_SOURCE_PREFIX`, `SANDBOX_API_BASE_URL`, and pinned `DEMO_RELEASE_V1_0_REF` / `DEMO_RELEASE_V1_1_REF`; avoid hardcoded repository URLs throughout agents. These settings do not implement or enable a repository tool in 1B-A.
+- v1.0 accepts strict integer subtotals 0–100,000,000 cents and whole-number discounts 0–100 inclusive. Round the merchandise discount half up to a cent using integer arithmetic, then subtract it. A zero subtotal still incurs $7.50 shipping under the stated below-threshold rule; a 100% discount never changes eligibility based on the original subtotal.
 
 ## 6. Guardrails — enforce in Python, not only prompts
 
 - Shared runtime agent instruction: **investigation only; never modify source code or execute unauthorized operations**. Do not rely on this instruction alone.
 - **No write tools or credentials** in runtime agent toolsets. Repository access is allowlisted, public and read-only. No unrestricted HTTP fetch, shell execution, model-generated executable Python/JS/SQL, patches, commits or PR creation.
+- Future repository tools must enforce path and history scoping in Python: permit only explicitly allowed checkout source files under configured `DEMO_SOURCE_PREFIX`, pin reads to releases, and filter commit/diff payloads to those paths before returning them. Deny traversal and unscoped history. Never return root `AGENTS.md`, `docs/IMPLEMENTATION_BLUEPRINT.md`, other internal docs, oracle source, tests/evaluation assertions, or known diagnoses. Prompts alone are insufficient. Do not implement these tools in 1B-A.
 - Bound complaint size and validate all parameters, release IDs, fixture IDs, checkout values, URLs, paths and operation names via Pydantic and host checks.
 - Treat tickets, policies, GitHub file contents and test responses as **untrusted data**; never allow them to override tool permissions or trigger arbitrary commands. Test malicious-instruction fixtures.
 - Use ceilings on model calls (target ≤10/run), sandbox experiments (≤8/run), targeted follow-ups (≤1), timeouts, concurrency and public usage. Protect paid model limits with **shared server-side counters** before exposing the public AI endpoint.
@@ -76,7 +87,7 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 
 - LangGraph's final result is a **structured evidence-backed investigation**, plus observable execution trace and a draft engineering case.
 - Use **application-level human-in-the-loop**: save draft as `awaiting_approval`, show it in the UI, and only save a case to the synthetic escalation queue after an authorized human clicks **Approve**. Allow **Reject** with persisted audit outcome.
-- Show exact reproduction steps, previous/current responses, policy sources, pinned GitHub location, verified-vs-suspected distinction and a proposed next engineering action.
+- Show exact reproduction steps, `v1.0`/`v1.1` responses when available, policy sources, pinned GitHub location, verified-vs-suspected distinction and a proposed next engineering action.
 - Show **measured** investigation duration and customer-impact framing. If showing ROI, label it an **illustrative scenario**, not proven savings or customer adoption.
 - The agents **do not** edit source, verify proposed fixes, open PRs, or deploy anything.
 
@@ -85,4 +96,4 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 - Add pytest for checkout variants, independent oracle, thresholds and missing-input behaviors; relevant frontend tests for UI changes; lint and type checks as configured.
 - Evaluate positive regression, healthy control, incomplete evidence, unavailable API, stale policy, malicious ticket instructions, denied write operation, session isolation, repeated approval and model budget exhaustion.
 - For every change, report which commands/tests were **actually executed**, output summaries, failures, security considerations and deployment status. Never claim a tool call, test or deployment succeeded unless verified.
-- **Current assigned first task is Milestone 1A unless the human explicitly changes it:** scaffold Next.js + FastAPI, `/health`, frontend-to-backend call, pytest smoke test, `.gitignore`, `.env.example`, README, and attempted public Vercel deployment. **Do not build checkout, LangGraph, AI agents, storage or polished UI in Milestone 1A.** Stop for review before Milestone 1B.
+- **Current assignment: Milestone 1B-A only.** Milestone 1A is complete. Implement correct v1.0 checkout at `POST /svc/api/sandbox/quote`, independent host-only oracle, strict validation and tests. Preserve health endpoints, dependencies, Next.js routing and working Vercel settings. No `v1_1.py`, manifest, tags, Git commits/pushes/deployment, payment ledger, agents, model integrations, retrieval tools, storage, approval workflow or dashboard in this assignment. Stop after local verification for human review; do not begin 1B-B.

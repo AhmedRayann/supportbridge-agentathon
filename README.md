@@ -1,19 +1,26 @@
 # SupportBridge
 
 SupportBridge will investigate customer-reported regressions in a fictional
-commerce application. This checkout implements **Milestone 1A only**: a minimal
-Next.js frontend calling a real Python/FastAPI health endpoint.
+commerce application. Milestone 1A provides a deployed Next.js frontend and Python
+health endpoint. **Milestone 1B-A** adds a local, testable checkout quote service
+for release **v1.0**.
 
-Checkout, AI agents, model clients and database persistence are not implemented.
-`/health` is an application liveness check; it does not check any future integrations.
-Production is deployed at <https://supportbridge-agentathon.vercel.app/>, but the
-reported Python function fails to import FastAPI. A packaging fix is prepared;
-successful production health and incognito verification are **pending redeployment**.
+The checkout application and any customer incidents used in the demonstration
+are synthetic. There are no real customers, payment operations, tax, currency
+conversion, inventory or shopping-cart persistence. AI agents, model clients and
+database persistence are not implemented yet.
+
+Milestone 1A is complete at <https://supportbridge-agentathon.vercel.app/>:
+the participant confirmed a working frontend and Python health response.
+`/health` is application liveness only. The new checkout endpoint has **not been
+deployed or verified in production** during this assignment.
 
 ## Files and request path
 
 - `frontend/`: Next.js App Router, React, TypeScript, Tailwind CSS and health client tests.
 - `backend/main.py`: FastAPI application with a Pydantic v2 health response.
+- `backend/sandbox/`: strict quote models, release dispatch and v1.0 calculations.
+- `backend/oracle/`: independent host-side policy calculations and comparisons.
 - `backend/tests/`: pytest health checks.
 - `vercel.json`: combined Vercel Services deployment and public routing.
 - `.env.example`: safe variable names/placeholders; no credentials are needed in 1A.
@@ -70,14 +77,50 @@ npm.cmd run dev
 
 Open <http://localhost:3000>. The page should change from
 "Checking Python API…" to "Python API connected." and show the actual response.
-No `.env` file is required for this default local setup.
+No `.env` file is required for health or checkout in this default local setup.
+
+## Synthetic checkout API
+
+With Python running, send a real quote request:
+
+```powershell
+$quote = '{"release":"v1.0","subtotal_cents":11000,"discount_percent":15}'
+Invoke-RestMethod -Uri http://127.0.0.1:8000/svc/api/sandbox/quote -Method Post -ContentType application/json -Body $quote
+```
+
+Response:
+
+```json
+{
+  "release": "v1.0",
+  "subtotal_cents": 11000,
+  "discount_percent": 15,
+  "discount_cents": 1650,
+  "discounted_subtotal_cents": 9350,
+  "shipping_cents": 0,
+  "total_cents": 9350
+}
+```
+
+All amounts are integer USD cents. Subtotals must be 0–100,000,000 cents and
+discounts must be whole percentages 0–100 inclusive. Round the merchandise
+discount half up to the nearest cent using integer arithmetic, then subtract it.
+Shipping is free for original merchandise subtotals of at least 10,000 cents;
+otherwise it is 750 cents. Discounts do not apply to shipping. Zero subtotal is
+valid and incurs 750 cents shipping; 100% discount does not change eligibility.
+
+Only `v1.0` is currently supported. Missing/extra fields, unsupported releases,
+negative/out-of-range values, booleans, numeric strings and floats return
+structured HTTP 422 errors. Requests calculate genuine quotes without external
+network calls or side effects. Reloading the frontend still performs only its
+existing health check; no storefront UI is included.
 
 For macOS/Linux, use `python3.13 -m venv .venv`, `.venv/bin/python` instead of
 `.\.venv\Scripts\python.exe`, and `npm` instead of `npm.cmd`.
 
 ## Environment and secrets
 
-`BACKEND_URL` is the only setting used in 1A. It is a **nonsecret origin**, read
+`BACKEND_URL` remains the only setting used by the frontend. It is a **nonsecret origin**, read
 by Next.js configuration on the server. It defaults to `http://127.0.0.1:8000`
 in development. To override it, place just this setting in
 `frontend/.env.local`. Rewrites are resolved at build time in production:
@@ -86,7 +129,11 @@ redeploy after changing it. Leave it unset for combined Vercel Services.
 The provider, token, database and budget names in the root `.env.example` reserve
 the locked blueprint's future backend configuration. They are not loaded,
 validated or used yet. AI runs are disabled in the example until their controls
-exist. Health works without provider credentials. No provider factory is part of 1A.
+exist. Health and checkout work without provider credentials; no provider factory
+is implemented. Future repository integration settings in `.env.example` are
+reserved and not read by checkout: `DEMO_GITHUB_OWNER`, `DEMO_GITHUB_REPO`,
+`DEMO_SOURCE_PREFIX`, `SANDBOX_API_BASE_URL`, `DEMO_RELEASE_V1_0_REF` and
+`DEMO_RELEASE_V1_1_REF`. Do not populate pinned references with invented values.
 
 Do not copy backend credentials into frontend environment files or settings.
 All future credentials belong in the Python backend environment; never use
@@ -176,9 +223,10 @@ This path is prepared but has not been deployed or verified.
 ## Milestone boundary
 
 Actual local commands and outcomes are recorded in
-[`docs/MILESTONE_1A_RESULTS.md`](docs/MILESTONE_1A_RESULTS.md).
+[`docs/MILESTONE_1A_RESULTS.md`](docs/MILESTONE_1A_RESULTS.md) and
+[`docs/MILESTONE_1B_A_RESULTS.md`](docs/MILESTONE_1B_A_RESULTS.md).
 
-The production packaging fix still needs to be pushed, redeployed and verified.
-Milestone 1A's full deployment gate is met only after a production
-frontend-to-Python call is verified in incognito.
-Stop for human review here; Milestone 1B requires a separate assignment.
+Milestone 1A is participant-confirmed complete. Milestone 1B-A stops at a tested
+v1.0 baseline ready for human review and a distinct commit. No commits, pushes,
+deployments, release tags or manifest are created in this assignment. Subsequent
+release work and provenance/deployment verification require separate assignments.

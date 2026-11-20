@@ -1,7 +1,12 @@
 # SupportBridge — FINAL Implementation Blueprint v1.2 (Locked MVP)
 
 **Locked:** 20 November 2026 (PKT). Registration confirmed complete by participant.  
-**Status:** Approved implementation baseline. No implementation/deployment is implied by this document.  
+**Status:** Approved implementation baseline. Completed work and deployment status are recorded in the milestone results documents.
+**Owner clarification:** Milestone 1A is confirmed complete by the participant at
+https://supportbridge-agentathon.vercel.app/. Current assignment: **Milestone 1B-A only**.
+The synthetic-environment decisions in section C and phased gates in section O
+supersede earlier release naming and the undivided 1B assignment. This blueprint
+is internal development material, excluded from runtime investigation tools.
 **Target:** Feature freeze 26 November; organizer LiteLLM verification and submission 27–29 November 2026.  
 **Submission:** One public Vercel production URL, one public participant-owned GitHub repository, project summary ≤600 characters.  
 **Source of truth:** This blueprint defines *what to build*. Root [`AGENTS.md`](../AGENTS.md) defines *how coding agents must work*. If they disagree, stop and resolve the conflict rather than silently dropping a requirement.
@@ -18,7 +23,7 @@
 
 **Demonstrated capability (MVP):** Find a reproducible shipping-policy regression between two controlled checkout releases and prepare a reviewable escalation. **Do not claim** unrestricted product debugging, a proven production root cause, integration to real customer systems, or autonomous code fixes.
 
-**The central value:** A reproducible API request and response, an independent expected-result assertion citing a policy, a previous/current release comparison, a **pinned likely source file/line/commit**, and an engineering case a human can act on.
+**The central value:** A reproducible API request and response, an independent expected-result assertion citing a policy, a `v1.0`/`v1.1` release comparison, a **pinned likely source file/line/commit**, and an engineering case a human can act on.
 
 **Outcomes:** `verified_regression`, `not_reproduced_in_tested_scope`, `insufficient_evidence`, or `environment_blocked`. Never equate “not reproduced in tested scope” with “no defect exists.” The code-cause assessment is separate: `suspected` or `unknown` unless additional independently sufficient evidence is available; this MVP makes **no claim of causal proof through patching**.
 
@@ -55,7 +60,9 @@ No arbitrary repository debugging, arbitrary URL fetching, model-generated runna
 
 **Shipping policy:** Free shipping when *pre-discount merchandise subtotal* is **at least USD 100.00**. Otherwise shipping is USD 7.50. Percent discount applies to merchandise. Taxes, multiple currencies, and actual payment capture are excluded. Currency and rounding behavior documented; money stored/calculated as integer cents.
 
-**Sample cart:** subtotal USD 110.00; 15% discount = USD 16.50; merchandise after discount USD 93.50. Correct release calculates free shipping from USD 110.00 and returns total **USD 93.50**. Faulty release uses USD 93.50 to determine eligibility and adds USD 7.50, total **USD 101.00**.
+**v1.0 input and rounding contract:** Strict integer subtotals 0–100,000,000 cents (USD 1,000,000.00 maximum); strict whole-number discount percentages 0–100 inclusive. Reject booleans, floats, numeric strings, missing fields and extra fields. Compute the discount as the nearest whole cent, with half-cent ties rounded up, then subtract it from merchandise. Integer arithmetic only. Zero subtotal is valid and incurs USD 7.50 shipping. A 100% discount applies only to merchandise and does not change shipping eligibility.
+
+**Sample cart (internal development plan):** subtotal USD 110.00; 15% discount = USD 16.50; merchandise after discount USD 93.50. Initial release `v1.0` calculates free shipping from USD 110.00 and returns total **USD 93.50**. The future `v1.1` pricing refactor in 1B-B will introduce the planned difference, returning **USD 101.00**. Do not introduce it during 1B-A or expose this plan through runtime tools, prompts or customer complaints.
 
 **Control A:** Same USD 110.00 cart with 5% discount → USD 104.50 on *both* releases; no added shipping.  
 **Control B:** USD 80.00 cart with 15% discount → USD 68.00 merchandise + USD 7.50 shipping = **USD 75.50** on *both* releases.  
@@ -67,7 +74,23 @@ No arbitrary repository debugging, arbitrary URL fetching, model-generated runna
 
 ### Version provenance
 
-Create normal Git history for the demo checkout: baseline correct implementation, meaningful release change that introduces regression, and additional benign commits. Pin two SHAs/tags. At build time, package two immutable checkout implementations derived from the corresponding versions, with a checked `release_manifest.json` mapping release ID → source SHA → artifact hash. Validate correspondence in tests. A test must call the actual versioned implementation, not an endpoint returning a canned diagnosis. Keep evaluation answer keys outside all agent-readable paths.
+Use exact application release identifiers **`v1.0`** and **`v1.1`**. Do not use `previous`, `current`, `working` or `buggy` as release identifiers. Version-specific calculation modules are `backend/sandbox/releases/v1_0.py` and, only after 1B-B, `v1_1.py`. Release labels and descriptions must read like an ordinary software product.
+
+Preserve genuine history in the existing SupportBridge repository; do not create another repository for the MVP:
+
+1. **1B-A:** correctly functioning v1.0, independent oracle and tests; review before a neutral baseline commit such as `feat: add checkout quote service`. No commits, tags or deployment by the coding agent during this assignment.
+2. **1B-B:** add v1.1 as a normal pricing-calculation refactor in a distinct commit, e.g. `refactor: streamline checkout pricing calculations`; preserve v1.0 as an independently executable implementation. No diagnosis in comments or commit messages.
+3. **1B-C:** record real source SHAs, create `checkout-v1.0` and `checkout-v1.1` references only after their release commits exist, package immutable artifacts from actual source, and build/test `release_manifest.json` mapping release ID → source SHA → artifact hash. Verify both APIs on Vercel. Do not fabricate commits, diffs, references or manifests.
+
+Tests must call actual implementations. Keep the oracle independent of checkout imports, helpers, models and constants. Its expected calculations and deterministic response comparison run in the Python host; its source and internal assertions are never available to runtime LLM tools.
+
+### No-spoiler investigation boundary and portability
+
+The public README transparently identifies synthetic checkout data and incidents. Agents must discover hypotheses through ordinary source/history and live behavior, without diagnosis spoilers in release labels, commit messages, source comments, filenames, prompts, runtime-accessible documentation or complaints. Internal development documentation may describe the controlled demonstration, but must be excluded from runtime access.
+
+Future repository adapters must enforce a strict Python allowlist of checkout-related source files under configurable `DEMO_SOURCE_PREFIX` (initially `backend/sandbox/`). Restrict commit queries to that source scope and filter diff/file/history payloads before exposing them; a comparison must not leak other files from a mixed commit. Normalize paths, reject traversal, use pinned release reads and deny unscoped history. Explicitly exclude root `AGENTS.md`, this blueprint, other internal docs, `backend/oracle/`, tests, `eval/`, known diagnoses and hidden expectations. Enforce in tools, not only prompts. These adapters are not part of 1B-A.
+
+Load future repository integration from backend-only configuration: `DEMO_GITHUB_OWNER`, `DEMO_GITHUB_REPO`, `DEMO_SOURCE_PREFIX`, `SANDBOX_API_BASE_URL`, and pinned `DEMO_RELEASE_V1_0_REF` / `DEMO_RELEASE_V1_1_REF` values resolved from real releases. Validate configured destinations/paths at the host boundary. Do not scatter hardcoded repository URLs or paths through agent code. This permits moving checkout to another repository later without rewriting agent architecture; no extra repository or infrastructure now.
 
 ## D. Architecture
 
@@ -87,7 +110,7 @@ Browser / Next.js (Vercel production domain)
               │      ├─ Reproduction Agent ── allowlisted experiment tool
               │      └─ Evidence Verifier ── immutable evidence + fresh replay
               │
-              ├── Synthetic checkout V1/V2 HTTP routes + payment ledger
+              ├── Synthetic checkout v1.0/v1.1 HTTP routes + payment ledger
               ├── Separate oracle/assertion library
               ├── Gemini/LiteLLM model adapter (server-only)
               └── Managed PostgreSQL (sessions, stages, runs, evidence, approvals)
@@ -152,6 +175,16 @@ Suggested API contracts (names subject to adjustment in the first code milestone
 | `GET /svc/api/escalations` | Session-scoped approved case queue |
 | `POST /svc/api/sandbox/quote` | Real sandbox release quote operation |
 | `GET /svc/api/sandbox/payment-events` | Synthetic payment ledger, scoped |
+
+**1B-A checkout contract:** `POST /svc/api/sandbox/quote` accepts
+`{"release":"v1.0","subtotal_cents":11000,"discount_percent":15}`.
+Returns integer fields `subtotal_cents`, `discount_percent`, `discount_cents`,
+`discounted_subtotal_cents`, `shipping_cents`, `total_cents`, plus `release`.
+Only `v1.0` is accepted in 1B-A; unsupported identifiers and invalid inputs return
+structured HTTP 422 validation errors. Dispatch uses an explicit release allowlist,
+not dynamic imports or external targets. The same contract gains `v1.1` in 1B-B.
+The oracle compares returned amounts with expectations derived from trusted input;
+release identity/provenance remains a separate host check. No payment ledger in 1B-A.
 
 Front-end screens:
 
@@ -231,7 +264,7 @@ AI_RUNS_ENABLED=true
 
 At minimum test:
 
-- Failing case: USD 110 / 15% discount; correct policy; regression on current release.
+- Failing case in the eventual two-release evaluation: USD 110 / 15% discount; correct policy; regression on `v1.1`. All v1.0 scenarios must follow policy in 1B-A.
 - Healthy control: same cart with 5% discount; must not falsely report bug.
 - Below-threshold control: USD 80 / 15%; must not falsely report bug.
 - Inclusive-boundary: USD 100 pre-discount; expected free shipping.
@@ -282,11 +315,11 @@ supportbridge/
       evidence.py
     sandbox/
       releases/
-        previous.py
-        current.py
+        v1_0.py
+        v1_1.py                  # 1B-B only
       models.py
-      api.py
-      release_manifest.json
+      router.py
+      release_manifest.json      # 1B-C only
     oracle/
       shipping_contract.py
     contracts/
@@ -315,7 +348,7 @@ supportbridge/
 | Date | Focus | Exit criterion |
 |---|---|---|
 | Nov 20 | **Milestone 1A only:** repo + `AGENTS.md` + this blueprint; scaffold official Next.js/FastAPI starter; local and public Vercel health smoke test | Incognito-accessible frontend calls real Python `/health` successfully. If Vercel Services fails, immediately assess the two-project Vercel fallback. |
-| Nov 21 | **Milestone 1B:** two actual checkout behaviors, independent oracle, real Git history, version manifest, boundary/control pytest tests | Previous/current return expected numbers and GitHub SHAs are traceable to actual implementations. |
+| Nov 21 | **Milestone 1B split into reviewed phases:** 1B-A v1.0 + oracle/tests; 1B-B v1.1 pricing refactor; 1B-C provenance/tags/manifest and deployment | Each phase stops for review; final v1.0/v1.1 results and real source SHAs are verified. |
 | Nov 22 | Data corpus, allowlisted tool adapters, evidence IDs, execution DSL, read-only GitHub calls | Manual investigation can retrieve tickets/policies/diffs and execute genuine test tools without an LLM. |
 | Nov 23 | Three model-driven LangGraph investigation agents, adaptive tool selection and retest | One live model-driven investigation runs and reacts to contrary evidence or changed inputs. |
 | Nov 24 | Fourth LLM verifier, evidence gate, likely code file/line/commit, durable storage, human approval/rejection | Four-agent run with source-linked report and session-persisted approval state. |
@@ -333,7 +366,7 @@ supportbridge/
 | 0–10s | A customer complaint: extra checkout charge; payment suspected | Understandable business problem |
 | 10–25s | Support and Repo agent tool actions in parallel; old ticket, policy, commit evidence | Multi-agent evidence search |
 | 25–40s | Payment-event test shows one event; quote breakdown shows shipping line | Model-selected experiment challenges hypothesis |
-| 40–60s | Previous/current release comparison, raw HTTP requests/responses and independent failed policy assertion | Genuine regression reproduction |
+| 40–60s | v1.0/v1.1 release comparison, raw HTTP requests/responses and independent failed policy assertion | Genuine regression reproduction |
 | 60–75s | Verifier replays and challenges candidate source cause; pinned GitHub diff view | Evidence verification and trustworthy limits |
 | 75–85s | Judge changes 15% to 5%, deterministic replay returns healthy outcome | Interactive, non-canned behavior |
 | 85–90s | Human approves evidence-backed engineering case | Finished useful business artifact |
@@ -354,13 +387,15 @@ Runtime is **not measured**; do not insist on these timings. If model latency is
 **Draft submission summary (edit after build; <600 characters):**  
 "SupportBridge is a multi-agent regression investigator for software support teams. Four Python/LangGraph agents investigate customer complaints, retrieve tickets and GitHub release evidence, run live checkout API experiments, and independently verify business-rule violations. A user can replay test inputs and approve an evidence-backed engineering escalation. The public demo uses exclusively synthetic business data and a controlled checkout sandbox."
 
-## O. First implementation assignment — execute now
+## O. Implementation assignments and review gates
 
-**Milestone 1A only: deployment foundation.** First create the participant-owned public repository, place `AGENTS.md` at its root and this file at `docs/IMPLEMENTATION_BLUEPRINT.md`, and use the official Vercel Next.js/FastAPI starter as the reference. Scaffold Next.js/React/TypeScript/Tailwind and Python 3.12+/FastAPI/Pydantic v2, implement `/health`, a minimal frontend calling the API, `.gitignore`, `.env.example`, README and basic backend health tests. Run locally; then attempt a *real* public Vercel deployment and incognito smoke test. **Do not implement checkout, LangGraph, database or UI polish in 1A.** Stop and report actual test/deployment outcomes, changed files and blockers.
+**Milestone 1A: deployment foundation (complete, participant-confirmed).** Next.js/React/TypeScript/Tailwind and Python 3.12+/FastAPI/Pydantic v2, `/health`, frontend health call, setup/environment documentation and tests are deployed at https://supportbridge-agentathon.vercel.app/. Preserve the working dependency detection, health endpoints, routing and Vercel configuration.
 
 **Milestone 1A is complete only when:** (a) the frontend locally calls a real Python health endpoint, (b) backend tests pass, (c) no secrets are committed, and (d) the frontend publicly calls Python on a verified production Vercel URL. If the participant hasn't connected GitHub/Vercel yet, provide exact manual instructions and mark public deployment **pending**—never fabricate success.
 
-**Milestone 1B follows after review:** Implement the two versioned checkout APIs, independent oracle, Git history and release artifact manifest; pass the 110/15, 110/5, 80/15 and $100 boundary tests. Still no agents during 1B.
+**Current assignment — Milestone 1B-A only:** implement v1.0 calculations, strict request/response models, actual quote endpoint, independent policy oracle and normal/boundary/rounding/invalid-input/API/health tests. Prove local HTTP execution; update this blueprint and root instructions with the synthetic-environment decisions. Prepare a distinct baseline commit for human review without committing it. No v1.1 module/behavior, Git references, manifest, deployment, agents, model clients, investigation/retrieval tools, payment ledger, persistence, approval workflow or dashboard. Stop for review.
+
+**Milestone 1B-B (future, separate assignment):** independently executable v1.1 pricing refactor, meaningful source differences and a distinct neutral human-reviewed commit. **Milestone 1B-C (future):** actual SHAs/tags, source/artifact correspondence and manifest tests, both deployed checkout APIs. Do not start either phase during 1B-A.
 
 ## P. Primary reference URLs (initially verified 18 November 2026; revalidate if configurations change)
 

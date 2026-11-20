@@ -1,11 +1,18 @@
-"""Milestone 1A: a real Python health endpoint, without external dependencies."""
+"""SupportBridge health and synthetic checkout API."""
 
 from typing import Literal
 
 from fastapi import FastAPI, Response
 from pydantic import BaseModel, ConfigDict
 
+# Support both package execution locally and main:app from the Vercel service root.
+if __package__:
+    from .sandbox.router import router as sandbox_router
+else:
+    from sandbox.router import router as sandbox_router
+
 app = FastAPI(title="SupportBridge API", version="0.1.0")
+app.include_router(sandbox_router)
 
 
 class HealthResponse(BaseModel):
