@@ -1,3 +1,15 @@
+[project]
+name = "supportbridge-backend"
+version = "0.1.0"
+description = "SupportBridge FastAPI backend"
+requires-python = ">=3.12"
+# Keep requirements.txt's local pip compatibility pins identical to this list.
+dependencies = [
+    "fastapi==0.165.0",
+    "pydantic==2.14.4",
+    "uvicorn==0.54.0",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".."]

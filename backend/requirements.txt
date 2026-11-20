@@ -1,3 +1,5 @@
+# Local pip compatibility mirror of [project].dependencies in pyproject.toml.
+# Update both manifests together; keep runtime versions identical.
 fastapi==0.165.0
 pydantic==2.14.4
 uvicorn==0.54.0

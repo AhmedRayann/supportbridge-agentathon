@@ -1,8 +1,9 @@
 # Milestone 1A verification
 
-Verified on 20 November 2026 (PKT). Local implementation is ready for review.
-The locked milestone's **public deployment gate is pending**; no production URL
-or incognito production verification is claimed.
+Initial local verification on 20 November 2026 (PKT) is recorded below as history.
+The production packaging follow-up at the end records the subsequently reported
+deployment failure and prepared fix. The locked milestone's **public health gate
+remains open** pending push, redeployment and production/incognito verification.
 
 ## Implemented files
 
@@ -90,3 +91,88 @@ without mocked backend responses. Both local servers were stopped afterward.
   LangGraph, AI clients, persistence or elaborate UI has been implemented.
 
 Stop for human review. Do not start Milestone 1B.
+
+## Production packaging follow-up — 20 November 2026 (PKT)
+
+### Reported failure and root-cause hypothesis
+
+The participant reports a production deployment at
+<https://supportbridge-agentathon.vercel.app/>. The frontend deployed, but
+`/svc/api/health` returns HTTP 500 `FUNCTION_INVOCATION_FAILED`; the supplied
+runtime traceback is `ModuleNotFoundError: No module named 'fastapi'`.
+This follow-up did not independently inspect Vercel build/runtime logs.
+
+The original `backend/pyproject.toml` contained only pytest/Ruff settings, while
+runtime requirements existed solely in `backend/requirements.txt`. The hypothesis
+is that the production installer selected the pyproject path and therefore did
+not install the requirements-file dependencies. The missing import is consistent
+with that explanation, but the exact installer selection and bundling behavior
+still need confirmation from the failed/new deployment build logs. Local tests
+previously passed because the local virtual environment was installed explicitly
+from the requirements files.
+
+Checked Vercel's current official guidance:
+
+- [Python runtime dependency configuration](https://vercel.com/docs/functions/runtimes/python#dependencies)
+  supports runtime dependencies in `pyproject.toml`, with or without `uv.lock`,
+  and shows `[project]` metadata with a dependency list.
+- [FastAPI deployment guidance](https://vercel.com/docs/frameworks/backend/fastapi)
+  supports Python manifests and the existing `main.py` application export.
+- [Services overview](https://vercel.com/docs/services) and
+  [service configuration reference](https://vercel.com/docs/services/config-reference)
+  describe independent service builds, service-relative roots and `main:app`
+  entrypoints. The current service layout matches those documented settings.
+
+### Small packaging fix
+
+- `backend/pyproject.toml`: added `[project]` name, version, description,
+  `requires-python = ">=3.12"` and the existing exact runtime pins:
+  FastAPI 0.165.0, Pydantic 2.14.4 and Uvicorn 0.54.0. Preserved all tooling tables.
+- `backend/requirements.txt`: added comments identifying it as the local pip
+  compatibility mirror. Its pins are unchanged and exactly match pyproject.
+  The existing root-directory `pip install -r backend/requirements-dev.txt`
+  command continues to work; no dependency upgrade is included.
+- `README.md`: documented the manifest relationship, updated the production
+  failure/pending-verification status, and corrected fallback dependency guidance.
+- This results file: recorded the hypothesis, actual checks and remaining gate.
+
+`vercel.json`, backend application code, tests, frontend, Python runtime pin and
+secret configuration are unchanged. No later-milestone functionality was added.
+
+### Checks actually run after this fix
+
+All commands used the existing Python 3.13.14 virtual environment from the
+repository root; these are not a clean Vercel/Linux installation or cloud build.
+
+| Command/check | Result |
+| --- | --- |
+| `.venv\Scripts\python.exe -m pytest -c backend/pyproject.toml backend/tests` | **3 passed**, 0.33s, no warnings. |
+| `.venv\Scripts\python.exe -m ruff check backend` | **All checks passed.** |
+| `.venv\Scripts\python.exe -m pip check` | **No broken requirements found.** |
+| `.venv\Scripts\python.exe -m pip install --dry-run --no-index -r backend/requirements-dev.txt` | Passed; all documented local runtime/dev requirements already satisfied. |
+| Inline Python `tomllib` / `packaging` validation | Parsed metadata; confirmed exact runtime-list parity with requirements.txt, installed versions satisfy every pin, and current Python satisfies `requires-python`. |
+| Inline comparison against `git show HEAD:backend/pyproject.toml` | Existing `[tool]` configuration is unchanged. |
+| `pip install --dry-run --no-index` with arguments parsed from `[project].dependencies` | Passed; all three runtime dependencies already satisfied. |
+| `git -c safe.directory=D:/Agent-A-Thon/supportbridge-agentathon diff --check` | Passed; Git emitted only existing LF-to-CRLF normalization notices. |
+
+### Commit and verify next
+
+Commit only `backend/pyproject.toml`, `backend/requirements.txt`, `README.md` and
+`docs/MILESTONE_1A_RESULTS.md`. Suggested message:
+`fix: declare backend runtime dependencies for Vercel`.
+No commit, push or deployment was performed in this follow-up.
+
+After pushing, inspect the new backend build log for dependency installation and
+the three declared runtime packages. If the old cached environment is reused,
+redeploy the latest commit with build cache disabled. Then run:
+
+```powershell
+curl.exe -i https://supportbridge-agentathon.vercel.app/health
+curl.exe -i https://supportbridge-agentathon.vercel.app/svc/api/health
+```
+
+Both must return HTTP 200 and `{"status":"ok","service":"supportbridge-api"}`.
+Open the production page in incognito, confirm "Python API connected." and
+inspect its actual `/svc/api/health` request. Record the deployed commit and
+actual results before closing Milestone 1A. Production is **not yet verified
+fixed**. Stop here for review and redeployment; do not begin Milestone 1B.

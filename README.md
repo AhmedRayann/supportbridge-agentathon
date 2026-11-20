@@ -6,7 +6,9 @@ Next.js frontend calling a real Python/FastAPI health endpoint.
 
 Checkout, AI agents, model clients and database persistence are not implemented.
 `/health` is an application liveness check; it does not check any future integrations.
-Public Vercel deployment and incognito verification are **pending**.
+Production is deployed at <https://supportbridge-agentathon.vercel.app/>, but the
+reported Python function fails to import FastAPI. A packaging fix is prepared;
+successful production health and incognito verification are **pending redeployment**.
 
 ## Files and request path
 
@@ -33,6 +35,12 @@ response contract and uses a five-second request timeout.
 
 Requirements: Node.js 22+ with npm, and Python **3.12+**. Vercel Python is pinned
 to 3.13 in `backend/.python-version`; local verification uses Python 3.13.
+
+`backend/pyproject.toml` declares project metadata and runtime dependencies for
+Python project installers. `backend/requirements.txt` retains the same exact
+runtime pins for the existing local pip commands, and `requirements-dev.txt`
+includes that file plus test tools. Keep the runtime pins synchronized when
+updating dependencies; do not leave `pyproject.toml` as a tooling-only manifest.
 
 From the repository root, using PowerShell:
 
@@ -149,7 +157,7 @@ This path is prepared but has not been deployed or verified.
 
 1. Import the same GitHub repository into a Vercel **backend** project. Set its
    Root Directory to `backend`, framework to FastAPI (or autodetection), and use
-   default dependency installation from `requirements.txt`. `main.py` exports
+   default dependency installation from `pyproject.toml`. `main.py` exports
    `app`; `.python-version` pins 3.13. Parent `vercel.json` is not used.
 2. Deploy backend Production and allow anonymous access. Verify both
    `https://<backend-production-domain>/health` and
@@ -170,6 +178,7 @@ This path is prepared but has not been deployed or verified.
 Actual local commands and outcomes are recorded in
 [`docs/MILESTONE_1A_RESULTS.md`](docs/MILESTONE_1A_RESULTS.md).
 
-Public deployment is pending account access. Milestone 1A's full deployment gate
-is met only after a production frontend-to-Python call is verified in incognito.
+The production packaging fix still needs to be pushed, redeployed and verified.
+Milestone 1A's full deployment gate is met only after a production
+frontend-to-Python call is verified in incognito.
 Stop for human review here; Milestone 1B requires a separate assignment.
