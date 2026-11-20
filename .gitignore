@@ -1,0 +1,27 @@
+# Secrets: keep examples only, at any depth.
+.env*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Next.js / Node
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+.npm-cache/
+
+# Deployment and local tooling
+.vercel/
+.DS_Store
+Thumbs.db
+*.log
