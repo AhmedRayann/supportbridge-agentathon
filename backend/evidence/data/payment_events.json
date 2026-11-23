@@ -1,0 +1,15 @@
+[
+  {"event_id":"EVT-4101-01","order_id":"ORD-4101","occurred_at":"2026-11-21T09:03:00Z","amount_cents":10100,"currency":"USD","event_type":"authorization","status":"succeeded","related_event_id":null},
+  {"event_id":"EVT-4101-02","order_id":"ORD-4101","occurred_at":"2026-11-21T09:03:01Z","amount_cents":10100,"currency":"USD","event_type":"capture","status":"succeeded","related_event_id":"EVT-4101-01"},
+  {"event_id":"EVT-3201-01","order_id":"ORD-3201","occurred_at":"2026-11-10T10:00:00Z","amount_cents":4200,"currency":"USD","event_type":"authorization","status":"succeeded","related_event_id":null},
+  {"event_id":"EVT-3201-02","order_id":"ORD-3201","occurred_at":"2026-11-10T10:00:02Z","amount_cents":4200,"currency":"USD","event_type":"capture","status":"succeeded","related_event_id":"EVT-3201-01"},
+  {"event_id":"EVT-3201-03","order_id":"ORD-3201","occurred_at":"2026-11-10T10:00:04Z","amount_cents":4200,"currency":"USD","event_type":"capture","status":"succeeded","related_event_id":"EVT-3201-01"},
+  {"event_id":"EVT-3201-04","order_id":"ORD-3201","occurred_at":"2026-11-11T15:30:00Z","amount_cents":4200,"currency":"USD","event_type":"refund","status":"succeeded","related_event_id":"EVT-3201-03"},
+  {"event_id":"EVT-4102-01","order_id":"ORD-4102","occurred_at":"2026-11-21T10:00:00Z","amount_cents":7550,"currency":"USD","event_type":"authorization","status":"succeeded","related_event_id":null},
+  {"event_id":"EVT-4102-02","order_id":"ORD-4102","occurred_at":"2026-11-21T10:00:01Z","amount_cents":7550,"currency":"USD","event_type":"capture","status":"succeeded","related_event_id":"EVT-4102-01"},
+  {"event_id":"EVT-4103-01","order_id":"ORD-4103","occurred_at":"2026-11-20T13:00:00Z","amount_cents":10450,"currency":"USD","event_type":"authorization","status":"succeeded","related_event_id":null},
+  {"event_id":"EVT-4103-02","order_id":"ORD-4103","occurred_at":"2026-11-20T13:00:02Z","amount_cents":10450,"currency":"USD","event_type":"capture","status":"succeeded","related_event_id":"EVT-4103-01"},
+  {"event_id":"EVT-4104-01","order_id":"ORD-4104","occurred_at":"2026-11-19T11:00:00Z","amount_cents":10000,"currency":"USD","event_type":"capture","status":"failed","related_event_id":null},
+  {"event_id":"EVT-4104-02","order_id":"ORD-4104","occurred_at":"2026-11-19T11:02:00Z","amount_cents":10000,"currency":"USD","event_type":"authorization","status":"succeeded","related_event_id":null},
+  {"event_id":"EVT-4104-03","order_id":"ORD-4104","occurred_at":"2026-11-19T11:02:01Z","amount_cents":10000,"currency":"USD","event_type":"capture","status":"succeeded","related_event_id":"EVT-4104-02"}
+]

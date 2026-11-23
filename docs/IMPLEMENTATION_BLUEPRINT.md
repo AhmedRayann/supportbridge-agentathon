@@ -2,11 +2,13 @@
 
 **Locked:** 20 November 2026 (PKT). Registration confirmed complete by participant.  
 **Status:** Approved implementation baseline. Completed work and deployment status are recorded in the milestone results documents.
-**Owner clarification:** Milestones 1A, 1B-A and 1B-B are confirmed complete,
+**Owner clarification:** Milestones 1A, 1B-A, 1B-B and 1B-C are confirmed complete,
 committed, deployed and production-tested by the participant at
 https://supportbridge-agentathon.vercel.app/, including eight checkout requests
-run with PowerShell after the local 1B-B report. Current assignment: **Milestone 1B-C only**.
-Prepare provenance artifacts and tag instructions; the human will create/push tags after review.
+run with PowerShell after the local 1B-B report. Both annotated release tags are
+published with verified peeled targets (2026-11-23). Current assignment:
+**Milestone 2A only**, synthetic support evidence and read-only Python retrieval
+tools. No agents, deployment or further milestone in this assignment.
 The synthetic-environment decisions in section C and phased gates in section O
 supersede earlier release naming and the undivided 1B assignment. This blueprint
 is internal development material, excluded from runtime investigation tools.
@@ -71,7 +73,7 @@ No arbitrary repository debugging, arbitrary URL fetching, model-generated runna
 **Control B:** USD 80.00 cart with 15% discount → USD 68.00 merchandise + USD 7.50 shipping = **USD 75.50** on *both* releases.  
 **Boundary:** Exactly USD 100.00 before discount qualifies for free shipping; document inclusive threshold.
 
-**Misleading evidence:** An older resolved duplicate-payment ticket. Agent may suspect it, but the current synthetic transaction has only **one** payment event and the unexpected amount appears as a **shipping line item** in the quote. Never force the model to pick the wrong hypothesis; stage a realistic ambiguity and let it decide.
+**Misleading evidence:** An older resolved duplicate-payment ticket. Agent may suspect it, but the current synthetic order has only **one successful capture**, alongside a separate authorization, and the unexpected amount appears as a **shipping line item** in the quote. An authorization is not another successful capture. Never force the model to pick the wrong hypothesis; stage a realistic ambiguity and let it decide.
 
 **Realness:** Execution is genuine against deployed application endpoints; all tickets, product data, policy and payment ledger are fictional. GitHub reads are actual API calls to our own public demo repository; cache hits are labeled. The production-impact and causal-commit claims remain unverified.
 
@@ -90,7 +92,7 @@ The participant supplied the actual 1B-A baseline commit
 oracle implementation against that commit, keep v1.0 independently executable,
 and use straightforward parallel calculation modules for comparison. Do not
 restructure the baseline or rewrite history. Runtime provenance packaging and
-release references are still the separate 1B-C assignment.
+release references were completed separately in 1B-C.
 
 The approved v1.1 historical commit is `c8473e4fcdb3f71630301c13c37fbf742c2a14ef`.
 The intended annotated references are `checkout-v1.0` → the v1.0 commit and
@@ -98,6 +100,8 @@ The intended annotated references are `checkout-v1.0` → the v1.0 commit and
 names the intended reference without claiming it has been published. Validate
 annotated tags using their peeled commit targets, not tag-object SHAs. An existing
 tag must never be overwritten, even when the latest commit looks convenient.
+Both annotated tags have now been published and independently checked against
+those exact targets; the earlier 1B-C report records its original pre-publication state.
 
 **Manifest schema v1:** top-level `schema_version`, `repository` (`owner`, `name`)
 and `releases` keyed by exact release identifiers. Each release contains only
@@ -124,7 +128,7 @@ is unrelated application/health registration glue. This specification is detaile
 in `docs/REPOSITORY_PROVENANCE.md`; it does not enforce access by itself. In future
 tools, strip excluded file metadata/patches/content before model exposure. Internal
 milestone reports and this specification are excluded as well. Do not build these
-tools during 1B-C.
+tools during 2A.
 
 Use the full-SHA GitHub comparison URL recorded in the provenance specification.
 The actual v1.1 commit adds a parallel versioned file; it does not edit v1.0's
@@ -306,7 +310,42 @@ AI_RUNS_ENABLED=true
 
 ## J. Dataset and reliability cases
 
-**Initial fixtures (30–40h):** 8–12 synthetic historical tickets, 3–4 policies/KB notes (including one misleading outdated article), 2 releases with real commits, 4 cart fixtures, payment events, 6 current complaints phrased differently. **50h extension:** ~24 tickets, 6 docs, 8 meaningful commits, 12 carts, 4 tenant configurations, 24 evaluation cases.
+**Initial fixtures (30–40h):** 8–12 synthetic historical tickets, 3–4 policies/KB notes (including one misleading outdated article), 2 releases with real commits, 4 cart fixtures, payment events, 6 current complaints phrased differently. **Milestone 2A owner-approved subset:** six tickets, three approved policy documents (nine stable numbered sections), and thirteen recorded payment events across five orders. The larger corpus and evaluation variations remain future work; do not expand them in 2A. **50h extension:** ~24 tickets, 6 docs, 8 meaningful commits, 12 carts, 4 tenant configurations, 24 evaluation cases.
+
+### Milestone 2A evidence-access contract
+
+`backend/evidence/models.py` defines immutable, strict Pydantic source and result
+models. `backend/evidence/store.py` loads only fixed module-relative JSON files
+under `backend/evidence/data/`; malformed/missing packaged data fails with an
+operator error rather than masquerading as an empty search. No Git, network or
+development working directory is required. The ledger is recorded synthetic
+evidence, not transaction state behind the stateless quote API.
+
+`backend/tools/support_corpus.py` supplies independent functions:
+`search_support_tickets(query, limit=5)`, `get_support_ticket(ticket_id)`,
+`search_policy_documents(query, limit=5)`, `get_policy_document(document_id)` and
+`get_order_payment_events(order_id)`. No agent, tool sequence, public endpoint or
+diagnosis is implemented here. Future model-selected queries/IDs choose evidence.
+Search uses case-insensitive alphanumeric tokens from record content/metadata,
+counts distinct shared tokens (any term can match), drops zero-score records,
+then sorts by descending score and ascending source ID. Queries are bounded to
+1–200 characters, must include a letter/number and reject control characters;
+strict integer limits are 1–10. Unrelated searches return empty matches; valid
+unknown IDs return null records/empty recorded events.
+
+Each result preserves exact source content, stable IDs, timestamps and source
+types, with synthetic/untrusted-data markers. Customer-reported fields remain
+allegations and unknown details remain null. Policy documents retain revision,
+approval, effective dates, applicability scope and ordered section IDs; future
+assertion hosts must establish approval and applicability before treating them
+as authoritative. Source citation IDs do not replace future host-generated,
+immutable per-investigation evidence records. Payment retrieval returns raw
+chronologically ordered events and `coverage="recorded_events_only"`, never
+charge counts, duplicate flags or causal conclusions. Missing events are not
+proof of no charge. Neither policy retrieval nor evidence loading imports the
+oracle, checkout calculations, internal instructions or evaluation assertions.
+Ticket instructions remain inert data: fixed inputs/read paths and Python tool
+permissions enforce this boundary; future LLM integration must preserve it.
 
 At minimum test:
 
@@ -375,9 +414,13 @@ supportbridge/
     storage/
     providers/
       model_factory.py              # provider switch via env, no agent changes
-    data/
-      support_tickets.json
-      policies.json
+    evidence/
+      models.py
+      store.py
+      data/
+        support_tickets.json
+        policy_documents.json
+        payment_events.json
     tests/
   eval/                            # never tool-readable
     cases.json
@@ -411,7 +454,7 @@ supportbridge/
 |---|---|---|
 | 0–10s | A customer complaint: extra checkout charge; payment suspected | Understandable business problem |
 | 10–25s | Support and Repo agent tool actions in parallel; old ticket, policy, commit evidence | Multi-agent evidence search |
-| 25–40s | Payment-event test shows one event; quote breakdown shows shipping line | Model-selected experiment challenges hypothesis |
+| 25–40s | Payment evidence shows one successful capture plus authorization; quote breakdown shows shipping line | Model-selected experiment challenges hypothesis |
 | 40–60s | v1.0/v1.1 release comparison, raw HTTP requests/responses and independent failed policy assertion | Genuine regression reproduction |
 | 60–75s | Verifier replays and challenges candidate source cause; pinned GitHub diff view | Evidence verification and trustworthy limits |
 | 75–85s | Judge changes 15% to 5%, deterministic replay returns healthy outcome | Interactive, non-canned behavior |
@@ -443,7 +486,9 @@ Runtime is **not measured**; do not insist on these timings. If model latency is
 
 **Milestone 1B-B complete (participant-confirmed):** v1.1 was committed as `c8473e4fcdb3f71630301c13c37fbf742c2a14ef`, deployed successfully on Vercel and verified by the participant with eight PowerShell checkout requests across both releases. Append that later confirmation to the 1B-B report without rewriting the original 220-test/local verification record.
 
-**Current assignment — Milestone 1B-C only:** verify actual SHAs/ancestry/source/tag state, add the neutral source-identity/hash manifest and focused tests, document exact future retrieval paths and safe human annotated-tag commands, update README/status and record actual outcomes in `docs/MILESTONE_1B_C_RESULTS.md`. Skip only Git-dependent tests when metadata/history is unavailable. No source/oracle/API changes, commit, push, tag mutation, deploy, Vercel/frontend changes, GitHub clients, agents, model integrations or next milestone. Stop for review; tag publication and peeled remote verification remain human follow-up.
+**Milestone 1B-C complete:** the source-identity/hash manifest and historical checks are committed. Both published annotated tags peel to their intended release commits. Preserve the manifest, calculation modules, oracle and Git history.
+
+**Current assignment — Milestone 2A only:** implement the focused synthetic corpus and five reusable typed Python retrieval tools, with strict bounded read-only access, exact provenance and query-dependent deterministic search. Run full backend, focused retrieval, lint, formatting, dependency and exported-package checks; record actual results in `docs/MILESTONE_2A_RESULTS.md`. No checkout/oracle/manifest/API changes, dependencies, frontend/Vercel changes, GitHub or experiment adapters, agents, model integration, persistence, commit, push, deployment, tag mutation or next milestone. Stop for human review before 2B.
 
 ## P. Primary reference URLs (initially verified 18 November 2026; revalidate if configurations change)
 

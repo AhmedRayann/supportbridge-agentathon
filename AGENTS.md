@@ -2,10 +2,12 @@
 
 **Locked on 2026-11-20.** Applies to Codex and any coding assistant operating in this repository.
 
-**Owner clarification:** Milestones 1A, 1B-A and 1B-B are complete, committed,
+**Owner clarification:** Milestones 1A, 1B-A, 1B-B and 1B-C are complete, committed,
 deployed and tested per the participant, including eight production checkout
 requests run with PowerShell after the original local reports.
-The current assignment is **Milestone 1B-C only**; release tags remain for human publication.
+Both annotated release tags are published and their peeled targets were verified
+on 2026-11-23. The current assignment is **Milestone 2A only**: synthetic support
+evidence and reusable, read-only Python retrieval tools, without LLM agents.
 The release/history/tool-access requirements
 below incorporate the owner's synthetic-environment decisions. This is internal
 development documentation and must never be exposed by runtime investigation tools.
@@ -38,7 +40,7 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 - Frontend: **Next.js App Router, React, TypeScript, Tailwind**.
 - Backend: **Python 3.12+, FastAPI, Pydantic v2**; type and validate all AI-visible tool arguments.
 - Agents and orchestration: **LangGraph Python** with bounded routing and explicit agent roles.
-- Checkout sandbox: actual Python functions exposed via controlled HTTP endpoints for `v1.0` and `v1.1`; 1B-C records actual source identities/hashes and prepares human tag publication. Do not change the released calculation modules or oracle.
+- Checkout sandbox: actual Python functions exposed via controlled HTTP endpoints for `v1.0` and `v1.1`; 1B-C records actual source identities/hashes, with both release tags now published. Do not change the released calculation modules, oracle or historical manifest.
 - Storage: in-memory test harness locally; **durable hosted storage** for anonymous sessions, investigation state, evidence, review decisions and shared public run budgets. Do not depend on serverless function memory for persistence.
 - First deployment proof: public Next.js page calls the **actual FastAPI `/health` endpoint** on Vercel. Verify incognito. Use official Next.js/FastAPI starter guidance; use two Vercel projects and a same-origin proxy if combined deployment fails.
 
@@ -77,6 +79,10 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 - The initial exact retrieval allowlist is `backend/sandbox/releases/v1_0.py`, `backend/sandbox/releases/v1_1.py`, `backend/sandbox/models.py`, and `backend/sandbox/router.py`. No other implementation paths are currently required. Package initializers are docstrings only; `backend/main.py` mixes unrelated application/health code and is excluded. This is a future tool specification, not an implemented enforcement layer; details are in `docs/REPOSITORY_PROVENANCE.md`. Broad GitHub comparisons must be filtered before the LLM receives file contents, patches or unrelated internal metadata.
 - Bound complaint size and validate all parameters, release IDs, fixture IDs, checkout values, URLs, paths and operation names via Pydantic and host checks.
 - Treat tickets, policies, GitHub file contents and test responses as **untrusted data**; never allow them to override tool permissions or trigger arbitrary commands. Test malicious-instruction fixtures.
+- Milestone 2A evidence lives only in `backend/evidence/data/`: six synthetic tickets, three versioned policies and a read-only recorded payment ledger. `backend/tools/support_corpus.py` exposes five independently callable search/get functions; no fixed investigation sequence or new public API. Load the fixed packaged paths relative to the module, with strict Pydantic validation and immutable source records.
+- Bound search queries to 1–200 characters with letters/numbers and no control characters; result limits are strict integers 1–10. Use deterministic lexical matching and stable source-ID tie-breaking. Exact ticket/document/order IDs are validated; never accept a path or URL. Unknown IDs return absent records; missing payment records do not prove no charge occurred.
+- Preserve exact source text, timestamps, numbered policy sections, reported values and unknown fields. Return payment events, never duplicate-payment flags or diagnoses. A successful capture differs from an authorization; the primary order has one of each. Historical resolutions concern their own orders only.
+- All retrieved content carries `content_trust="untrusted_data"`. This marker is not an LLM permission boundary: future hosts must keep content in data/tool results and enforce permissions separately. Only approved, applicable policy versions may support authoritative assertions; preserve approval, revision, effective-date and scope metadata without automatically declaring applicability. Keep the policy corpus independent of the oracle. Packaged source IDs are citation identifiers, not the future per-run immutable evidence IDs.
 - Use ceilings on model calls (target ≤10/run), sandbox experiments (≤8/run), targeted follow-ups (≤1), timeouts, concurrency and public usage. Protect paid model limits with **shared server-side counters** before exposing the public AI endpoint.
 - Issue immutable **host-generated evidence IDs**. Only valid recorded HTTP results + applicable policy + fresh replay/independent assertions may support `verified_regression`. LLM claims must not determine assertion pass/fail.
 - Use statuses `verified_regression`, `not_reproduced_in_tested_scope`, `insufficient_evidence`, `environment_blocked`. Never report “no bug exists” from a narrow non-reproduction or treat HTTP errors as a regression.
@@ -103,4 +109,4 @@ SupportBridge is an **AI regression investigator for customer-reported defects**
 - Add pytest for checkout variants, independent oracle, thresholds and missing-input behaviors; relevant frontend tests for UI changes; lint and type checks as configured.
 - Evaluate positive regression, healthy control, incomplete evidence, unavailable API, stale policy, malicious ticket instructions, denied write operation, session isolation, repeated approval and model budget exhaustion.
 - For every change, report which commands/tests were **actually executed**, output summaries, failures, security considerations and deployment status. Never claim a tool call, test or deployment succeeded unless verified.
-- **Current assignment: Milestone 1B-C only.** Verify actual commits, ancestry, source, dispatch and local/remote tag state; create the neutral release manifest and focused tests; specify future allowed/excluded repository paths; document safe human tag commands and outcomes in `docs/MILESTONE_1B_C_RESULTS.md`. Preserve earlier 1B-B findings and append a dated participant-confirmed deployment/PowerShell update. Keep Git-dependent tests optional without `.git`; no runtime Git requirement. Do not change checkout logic, oracle, APIs, dependencies, frontend or Vercel config; do not create/modify/delete/push tags, commit, push, deploy, implement investigation tools/agents/integrations/storage, or begin another milestone. Stop for review before tag publication.
+- **Current assignment: Milestone 2A only.** Implement the synthetic evidence corpus and five read-only Python retrieval tools, test schemas/relationships/search/provenance/validation/permissions, and record actual outcomes in `docs/MILESTONE_2A_RESULTS.md`. Verify module-relative loading and both backend import styles without Git metadata. Preserve checkout logic, oracle, manifest, existing APIs, dependencies, frontend, Vercel configuration and Git history. No LLM agents, orchestration, GitHub clients, checkout experiment tools, payment processing, persistence or new public evidence API. Do not commit, push, deploy, mutate tags or begin 2B. Stop for human review.

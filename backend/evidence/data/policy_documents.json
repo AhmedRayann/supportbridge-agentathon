@@ -1,0 +1,47 @@
+[
+  {
+    "document_id": "POL-100",
+    "title": "USD delivery eligibility",
+    "revision": "1.0",
+    "effective_from": "2026-11-01",
+    "effective_until": null,
+    "approval_status": "approved",
+    "approved_at": "2026-10-25T10:00:00Z",
+    "applies_to": "HarborCart Demo USD checkout quotes",
+    "sections": [
+      {"section_id": "POL-100-S1", "number": 1, "title": "Qualifying merchandise subtotal", "content": "Free shipping applies when the original merchandise subtotal is at least 10000 USD cents ($100.00). The threshold is inclusive. Determine eligibility before promotional discounts are applied."},
+      {"section_id": "POL-100-S2", "number": 2, "title": "Delivery charge", "content": "When the original merchandise subtotal is below 10000 cents, delivery costs 750 USD cents ($7.50). Percentage merchandise discounts do not reduce the delivery charge. A zero merchandise subtotal remains below the qualifying threshold."},
+      {"section_id": "POL-100-S3", "number": 3, "title": "Quote scope", "content": "A USD checkout quote totals discounted merchandise plus applicable delivery. These quotes do not include tax, currency conversion or actual payment capture."}
+    ]
+  },
+  {
+    "document_id": "POL-110",
+    "title": "Merchandise promotion amounts and rounding",
+    "revision": "1.0",
+    "effective_from": "2026-11-01",
+    "effective_until": null,
+    "approval_status": "approved",
+    "approved_at": "2026-10-25T10:15:00Z",
+    "applies_to": "HarborCart Demo USD percentage merchandise promotions",
+    "sections": [
+      {"section_id": "POL-110-S1", "number": 1, "title": "Merchandise-only promotion", "content": "An eligible percentage discount applies to the original merchandise subtotal, not to delivery. Promotion labels such as SAVE15 identify a merchant's offer; they are not additional checkout API operations."},
+      {"section_id": "POL-110-S2", "number": 2, "title": "Integer-cent rounding", "content": "Represent all amounts as integer USD cents. Compute the percentage discount on merchandise and round the discount to the nearest whole cent, with half-cent ties rounded up. Subtract that rounded discount to obtain discounted merchandise. A 50% discount on one cent rounds to a one-cent discount."},
+      {"section_id": "POL-110-S3", "number": 3, "title": "Supported quote inputs", "content": "Supported merchandise subtotals range from 0 through 100000000 cents. Whole-number discount percentages range from 0 through 100 inclusive. A 100% merchandise discount does not remove an otherwise applicable delivery charge."}
+    ]
+  },
+  {
+    "document_id": "POL-200",
+    "title": "Recorded payment-event meanings",
+    "revision": "2.1",
+    "effective_from": "2026-09-01",
+    "effective_until": null,
+    "approval_status": "approved",
+    "approved_at": "2026-08-28T09:00:00Z",
+    "applies_to": "HarborCart Demo synthetic USD payment-event records",
+    "sections": [
+      {"section_id": "POL-200-S1", "number": 1, "title": "Authorization", "content": "A successful authorization reserves an amount. It is not a successful capture or a settled charge. An authorization followed by a capture is not automatically two charges, even when a bank temporarily displays both entries."},
+      {"section_id": "POL-200-S2", "number": 2, "title": "Capture, failure and reversal", "content": "A capture with status succeeded records a successful collection. A failed capture attempt does not record collected funds. A refund reverses a referenced successful capture; a void releases a referenced authorization. These are distinct event types, not interchangeable payment counts."},
+      {"section_id": "POL-200-S3", "number": 3, "title": "Record coverage", "content": "The synthetic ledger contains recorded events linked by order and event ID. Missing records may reflect incomplete information. Their absence alone does not establish that an attempted or completed charge never occurred."}
+    ]
+  }
+]

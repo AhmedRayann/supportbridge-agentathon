@@ -4,6 +4,8 @@ SupportBridge will investigate customer-reported regressions in a fictional
 commerce application. Milestone 1A provides a deployed Next.js frontend and Python
 health endpoint. The synthetic checkout quote service supports releases **v1.0**
 and **v1.1** through a shared API contract.
+Milestone 2A adds packaged support evidence and read-only Python retrieval tools
+for later agent integration.
 
 The checkout application and any customer incidents used in the demonstration
 are synthetic. There are no real customers, payment operations, tax, currency
@@ -23,7 +25,9 @@ checkout requests were run with PowerShell after the local 1B-B verification.
 - `backend/sandbox/`: strict quote models, release dispatch and versioned calculations.
 - `backend/sandbox/release_manifest.json`: pinned historical source identities.
 - `backend/oracle/`: independent host-side policy calculations and comparisons.
-- `backend/tests/`: pytest health checks.
+- `backend/evidence/`: typed source records and packaged synthetic tickets, policies and payment events.
+- `backend/tools/support_corpus.py`: five bounded, read-only evidence retrieval functions.
+- `backend/tests/`: pytest health, checkout, provenance and retrieval checks.
 - `vercel.json`: combined Vercel Services deployment and public routing.
 - `.env.example`: safe variable names/placeholders; no credentials are needed in 1A.
 - `AGENTS.md` and `docs/IMPLEMENTATION_BLUEPRINT.md`: locked implementation instructions.
@@ -123,21 +127,91 @@ existing health check; no storefront UI is included.
 For macOS/Linux, use `python3.13 -m venv .venv`, `.venv/bin/python` instead of
 `.\.venv\Scripts\python.exe`, and `npm` instead of `npm.cmd`.
 
+## Synthetic support evidence and Python tools
+
+The packaged HarborCart Demo corpus contains **six tickets** with six support
+notes, **three approved versioned policy documents** with nine numbered sections,
+and **thirteen recorded payment events** across five orders. It includes an
+incomplete complaint, promotion questions, historical payment activity and
+authorization/capture distinctions. All records are fictional; the ledger is
+separate from the stateless checkout API and performs no payment operations.
+
+Import from the repository root:
+
+```python
+from backend.tools.support_corpus import (
+    get_order_payment_events,
+    get_policy_document,
+    get_support_ticket,
+    search_policy_documents,
+    search_support_tickets,
+)
+
+matches = search_support_tickets("SAVE15", limit=3)
+print([match.ticket.ticket_id for match in matches.matches])
+# ['TKT-1001', 'TKT-1003']
+
+print(get_order_payment_events("ORD-4101").model_dump(mode="json"))
+```
+
+| Function | Typed result |
+| --- | --- |
+| `search_support_tickets(query: str, limit: int = 5)` | `TicketSearchResult` |
+| `get_support_ticket(ticket_id: str)` | `TicketResult` |
+| `search_policy_documents(query: str, limit: int = 5)` | `PolicySearchResult` |
+| `get_policy_document(document_id: str)` | `PolicyResult` |
+| `get_order_payment_events(order_id: str)` | `OrderPaymentEvents` |
+
+These functions return immutable Pydantic models. Use `.model_dump(mode="json")`
+for JSON-compatible dictionaries or `.model_dump_json()` for JSON strings.
+Imports also work as `from tools.support_corpus import ...` with `backend/` as
+the service import root. Fixed data paths are relative to the module, independent
+of the working directory or Git metadata.
+
+Search accepts 1–200 characters, requires a letter/number, rejects control
+characters, and limits results to a strict integer from 1–10. It counts distinct
+shared case-insensitive alphanumeric tokens across content and metadata; any
+query term may match. Scores descend, ties sort by source ID. There is no stemming,
+semantic matching or special-case diagnostic ranking. For example, `duplicate`
+returns `TKT-1002`, `authorization` returns `TKT-1005`, and `astronomy nebula`
+returns no matches. Policy search also returns matching section IDs.
+
+Exact lookups accept only `TKT-####`, `POL-###` or `ORD-####` IDs. Valid unknown
+IDs yield a null record or empty event list. Invalid arguments raise Pydantic
+`ValidationError`; unavailable or malformed packaged data raises `EvidenceDataError`
+rather than returning misleading empty results. No paths, URLs or extra operation
+arguments are accepted.
+
+Results preserve original text, reported values, timestamps and source IDs.
+Unknown customer details remain null. Payment results contain underlying events
+in timestamp/ID order and `coverage="recorded_events_only"`; absent records are
+not proof that no charge occurred. Policy results preserve approval, revision,
+effective dates and scope. Future assertion hosts must establish that a policy
+is approved and applicable before using it as authority.
+
+Retrieved text is marked `content_trust="untrusted_data"`. These tools do not
+interpret customer instructions, compute diagnoses, read internal source or call
+the oracle. Future agents will choose their own queries and IDs; their host must
+keep retrieved content as data and enforce tool permissions. There are no LLM
+agents, scripted investigation, new public evidence API or provider requirements
+in this milestone. Local packaging checks do not verify a new Vercel deployment.
+
 ## Release provenance
 
 The [release manifest](backend/sandbox/release_manifest.json) records the existing
 repository, historical commits, source paths, commit-pinned URLs and source hashes.
 It describes source identity without prescribing an investigation result.
 
-| Release | Historical commit | Source | Intended annotated tag |
+| Release | Historical commit | Source | Published annotated tag |
 | --- | --- | --- | --- |
 | v1.0 | `a4eeea911604494f693e027cdaca5f2da2f78a7e` | [v1_0.py](https://github.com/AhmedRayann/supportbridge-agentathon/blob/a4eeea911604494f693e027cdaca5f2da2f78a7e/backend/sandbox/releases/v1_0.py) | `checkout-v1.0` |
 | v1.1 | `c8473e4fcdb3f71630301c13c37fbf742c2a14ef` | [v1_1.py](https://github.com/AhmedRayann/supportbridge-agentathon/blob/c8473e4fcdb3f71630301c13c37fbf742c2a14ef/backend/sandbox/releases/v1_1.py) | `checkout-v1.1` |
 
-Both tags were absent locally and on `origin` when checked during 1B-C. They have
-not been created or pushed by the coding agent; human publication and peeled
-target verification remain pending. Tag instructions and the future repository
-retrieval specification are in [Repository provenance](docs/REPOSITORY_PROVENANCE.md).
+Both tags were absent during the original 1B-C checks and were subsequently
+published by the participant. Local annotated refs and remote peeled targets
+were independently verified on 2026-11-23 against the commits above. No tags
+were created or changed during 2A. The future repository retrieval specification
+is in [Repository provenance](docs/REPOSITORY_PROVENANCE.md).
 The running FastAPI application neither calls Git nor exposes a manifest endpoint.
 With an exported backend lacking `.git`, history-dependent tests skip while
 manifest, checkout, validation and health tests continue to run.
@@ -177,6 +251,8 @@ Run from the repository root:
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -c backend/pyproject.toml backend/tests
 .\.venv\Scripts\python.exe -m ruff check backend
+.\.venv\Scripts\python.exe -m ruff format --check backend
+.\.venv\Scripts\python.exe -m pip check
 Set-Location frontend
 npm.cmd test
 npm.cmd run lint
@@ -251,8 +327,9 @@ Actual local commands and outcomes are recorded in
 [`docs/MILESTONE_1B_A_RESULTS.md`](docs/MILESTONE_1B_A_RESULTS.md), with the latest
 release verification in [`docs/MILESTONE_1B_B_RESULTS.md`](docs/MILESTONE_1B_B_RESULTS.md)
 and provenance checks in [`docs/MILESTONE_1B_C_RESULTS.md`](docs/MILESTONE_1B_C_RESULTS.md).
+The latest evidence/retrieval results are in
+[`docs/MILESTONE_2A_RESULTS.md`](docs/MILESTONE_2A_RESULTS.md).
 
-Milestones 1A, 1B-A and 1B-B are participant-confirmed complete. The 1B-C provenance
-artifacts are ready for human review; tag publication and remote target checks
-remain pending. No commits, pushes, deployments or tags are performed by the
-coding agent in this assignment. Stop here before the next milestone.
+Milestones 1A through 1B-C are complete, including published release tags.
+Milestone 2A is implemented and verified locally for human review. No commit,
+push, deployment, tag mutation or work on 2B is performed in this assignment.

@@ -1,0 +1,110 @@
+[
+  {
+    "ticket_id": "TKT-1001",
+    "product": "HarborCart Demo",
+    "title": "Promotion checkout amount query",
+    "created_at": "2026-11-21T09:10:00Z",
+    "updated_at": "2026-11-21T09:20:00Z",
+    "status": "open",
+    "order_id": "ORD-4101",
+    "reported_release": "v1.1",
+    "promotion_label": "SAVE15",
+    "reported_subtotal_cents": 11000,
+    "reported_discount_percent": 15,
+    "reported_total_cents": 10100,
+    "customer_message": "The demo store cart showed $110.00 of merchandise and SAVE15 at 15%. The confirmation total was $101.00. Our buyer says the bank app shows two entries and thinks the payment was duplicated. We expected a lower amount after the promotion. The merchant console shows checkout v1.1.",
+    "support_notes": [
+      {"note_id": "NOTE-1001-01", "created_at": "2026-11-21T09:20:00Z", "kind": "observation", "content": "Order reference and promotion details were supplied by the demo merchant. No bank screenshot or itemized receipt has been attached to this ticket."}
+    ]
+  },
+  {
+    "ticket_id": "TKT-1002",
+    "product": "HarborCart Demo",
+    "title": "Duplicate payment reported after an earlier order submission",
+    "created_at": "2026-11-10T11:00:00Z",
+    "updated_at": "2026-11-11T15:40:00Z",
+    "status": "resolved",
+    "order_id": "ORD-3201",
+    "reported_release": null,
+    "promotion_label": null,
+    "reported_subtotal_cents": 3450,
+    "reported_discount_percent": 0,
+    "reported_total_cents": 4200,
+    "customer_message": "The demo merchant has one $42.00 receipt but sees two posted $42.00 payments for the same order. The buyer clicked submit again after a slow confirmation screen.",
+    "support_notes": [
+      {"note_id": "NOTE-1002-01", "created_at": "2026-11-11T15:40:00Z", "kind": "resolution", "content": "The historical settlement export contained two successful captures of 4200 cents against this order. The second capture was refunded in full on November 11. This note concerns ORD-3201 only; the checkout release was not recorded."}
+    ]
+  },
+  {
+    "ticket_id": "TKT-1003",
+    "product": "HarborCart Demo",
+    "title": "SAVE15 receipt amount clarification",
+    "created_at": "2026-11-21T10:05:00Z",
+    "updated_at": "2026-11-21T10:15:00Z",
+    "status": "resolved",
+    "order_id": "ORD-4102",
+    "reported_release": "v1.1",
+    "promotion_label": "SAVE15",
+    "reported_subtotal_cents": 8000,
+    "reported_discount_percent": 15,
+    "reported_total_cents": 7550,
+    "customer_message": "SAVE15 reduced an $80.00 merchandise cart to $68.00, but the final receipt is $75.50. Does the promotion cover delivery too? The merchant reports checkout v1.1.",
+    "support_notes": [
+      {"note_id": "NOTE-1003-01", "created_at": "2026-11-21T10:15:00Z", "kind": "resolution", "content": "The attached receipt lists merchandise of 6800 cents and delivery of 750 cents. The demo merchant acknowledged the receipt explanation."}
+    ]
+  },
+  {
+    "ticket_id": "TKT-1004",
+    "product": "HarborCart Demo",
+    "title": "Checkout amount concern without order details",
+    "created_at": "2026-11-22T08:30:00Z",
+    "updated_at": "2026-11-22T08:40:00Z",
+    "status": "awaiting_details",
+    "order_id": null,
+    "reported_release": null,
+    "promotion_label": null,
+    "reported_subtotal_cents": null,
+    "reported_discount_percent": null,
+    "reported_total_cents": null,
+    "customer_message": "Checkout seemed more expensive than last week. I do not have the order number, cart amount or receipt with me. I cannot remember which promotion was selected.",
+    "support_notes": [
+      {"note_id": "NOTE-1004-01", "created_at": "2026-11-22T08:40:00Z", "kind": "request_for_information", "content": "No transaction details have been supplied. The ticket remains open for an order reference and receipt."}
+    ]
+  },
+  {
+    "ticket_id": "TKT-1005",
+    "product": "HarborCart Demo",
+    "title": "Pending authorization alongside a posted receipt",
+    "created_at": "2026-11-20T13:10:00Z",
+    "updated_at": "2026-11-20T13:20:00Z",
+    "status": "open",
+    "order_id": "ORD-4103",
+    "reported_release": "v1.0",
+    "promotion_label": "WELCOME5",
+    "reported_subtotal_cents": 11000,
+    "reported_discount_percent": 5,
+    "reported_total_cents": 10450,
+    "customer_message": "The buyer sees a pending authorization and a posted $104.50 payment in the bank app after using WELCOME5. There is one order receipt. The demo merchant reports v1.0 and an original $110.00 cart.",
+    "support_notes": [
+      {"note_id": "NOTE-1005-01", "created_at": "2026-11-20T13:20:00Z", "kind": "observation", "content": "The merchant supplied one receipt reference. The reported bank display still shows the pending entry; its disappearance has not been confirmed."}
+    ]
+  },
+  {
+    "ticket_id": "TKT-1006",
+    "product": "HarborCart Demo",
+    "title": "Declined attempt followed by an order confirmation",
+    "created_at": "2026-11-19T11:05:00Z",
+    "updated_at": "2026-11-19T11:30:00Z",
+    "status": "resolved",
+    "order_id": "ORD-4104",
+    "reported_release": "v1.0",
+    "promotion_label": null,
+    "reported_subtotal_cents": 10000,
+    "reported_discount_percent": 0,
+    "reported_total_cents": 10000,
+    "customer_message": "The first payment attempt was declined. A later attempt produced a $100.00 receipt. Could the failed attempt still have taken money? No promotion was used; the demo console lists v1.0.",
+    "support_notes": [
+      {"note_id": "NOTE-1006-01", "created_at": "2026-11-19T11:30:00Z", "kind": "resolution", "content": "The merchant confirmed that only the later attempt received an order confirmation. The recorded failed attempt and later payment retain separate event IDs."}
+    ]
+  }
+]
