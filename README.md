@@ -6,6 +6,8 @@ health endpoint. The synthetic checkout quote service supports releases **v1.0**
 and **v1.1** through a shared API contract.
 Milestone 2A adds packaged support evidence and read-only Python retrieval tools
 for later agent integration.
+Milestone 2B adds pinned GitHub source/history access and actual checkout HTTP
+experiment tools. No LLM agents or investigation workflow are implemented yet.
 
 The checkout application and any customer incidents used in the demonstration
 are synthetic. There are no real customers, payment operations, tax, currency
@@ -27,6 +29,8 @@ checkout requests were run with PowerShell after the local 1B-B verification.
 - `backend/oracle/`: independent host-side policy calculations and comparisons.
 - `backend/evidence/`: typed source records and packaged synthetic tickets, policies and payment events.
 - `backend/tools/support_corpus.py`: five bounded, read-only evidence retrieval functions.
+- `backend/tools/github_read.py`: restricted GitHub source/history and source comparison.
+- `backend/tools/experiments.py`: selected checkout HTTP execution and observations.
 - `backend/tests/`: pytest health, checkout, provenance and retrieval checks.
 - `vercel.json`: combined Vercel Services deployment and public routing.
 - `.env.example`: safe variable names/placeholders; no credentials are needed in 1A.
@@ -196,6 +200,90 @@ keep retrieved content as data and enforce tool permissions. There are no LLM
 agents, scripted investigation, new public evidence API or provider requirements
 in this milestone. Local packaging checks do not verify a new Vercel deployment.
 
+## Technical investigation tools
+
+These Python tools operate independently; a future agent chooses which calls to
+make and what supported arguments to supply. There is no predefined investigation
+sequence or policy verdict.
+
+| Function | Behavior |
+| --- | --- |
+| `list_checkout_releases()` | Synchronous listing of packaged manifest identities, without claiming live verification. |
+| `await get_checkout_source(release, path)` | Read approved historical GitHub source, exact text, numbered lines and pinned links. |
+| `await get_checkout_history(release, path, limit=5)` | One path-scoped history page, limited to approved release commit identities and dates. |
+| `await compare_checkout_sources(from_release, to_release)` | Retrieve both release files and generate a labeled local source comparison. |
+| `await run_checkout_quote(release, subtotal_cents, discount_percent)` | Execute one real HTTP POST and return the validated observation. |
+
+GitHub owner/repository, source prefix and full commit SHAs resolve from the
+existing [manifest](backend/sandbox/release_manifest.json). Optional process
+variables `DEMO_GITHUB_OWNER`, `DEMO_GITHUB_REPO`, `DEMO_SOURCE_PREFIX`,
+`DEMO_RELEASE_V1_0_REF` and `DEMO_RELEASE_V1_1_REF` must match it exactly.
+Release-ref overrides must be full SHAs. An optional backend-only `GITHUB_TOKEN`
+can authenticate public read requests; it is never included in results.
+
+Source access permits each release calculation file only at its own pinned
+commit, plus `backend/sandbox/models.py` and `backend/sandbox/router.py` at either
+approved commit. Paths/refs cannot expand access to README, internal documents,
+tests, oracle or unrelated files. Calculation bytes must match manifest SHA-256;
+shared source hashes are reported without claiming manifest hash verification.
+History omits commit messages, authors, unrelated file lists and patches. The
+comparison is a local unified diff of actual GitHub source snapshots, not a
+historical Git patch. Returned source remains untrusted data.
+
+Set the trusted sandbox origin explicitly in the Python process environment.
+For the local Python service started above:
+
+```powershell
+$env:SANDBOX_API_BASE_URL = 'http://127.0.0.1:8000'
+```
+
+For production experiments use exactly
+`https://supportbridge-agentathon.vercel.app`. Other remote origins, credentials,
+paths, query strings and fragments are rejected. Local HTTP supports only
+`localhost` or `127.0.0.1` with an optional port. Configuration failures raise a
+sanitized `ConfigurationError`; there is no environment fallback.
+
+Example Python calls from the repository root:
+
+```python
+import asyncio
+from backend.tools.github_read import get_checkout_source
+from backend.tools.experiments import run_checkout_quote
+
+async def inspect():
+    source = await get_checkout_source('v1.0', 'backend/sandbox/releases/v1_0.py')
+    print(source.model_dump(mode='json'))
+    quote = await run_checkout_quote('v1.0', 12500, 20)
+    print(quote.model_dump(mode='json'))
+
+asyncio.run(inspect())
+```
+
+The live smoke check returned total `10000` cents for that quote. Observations
+retain selected inputs, request URL/method/path, HTTP status, quote fields,
+timestamp and duration. They validate schema and echoed inputs without consulting
+the oracle or deciding whether behavior follows business policy.
+
+Requests disable redirects, retries and environment proxy configuration, use
+5-second inactivity and 15-second total timeouts, and cap decoded responses at
+256 KiB (individual source files: 32 KiB). There are no caller-supplied network
+targets, HTTP methods or headers. Failures remain structured errors, with no raw
+upstream error bodies, tokens, invented responses or local source fallback.
+
+For later agent integration, bind the host-only keyword
+`reserve_experiment=async_callback` before exposing a three-argument wrapper.
+The callback receives maximum `8` and must atomically reserve a durable per-run
+slot, returning `True` to proceed. Denial or reservation failure blocks HTTP.
+Failures and verifier replays must consume slots too. Without this hook, calls
+are unbudgeted manual/local operations; no public agent endpoint, global counter
+or persistent budget store exists yet.
+
+HTTPX 0.28.1 is now a runtime dependency in both backend manifests; it previously
+was development-only. No Vercel routing or frontend configuration changed.
+Both backend import styles and an exported backend without Git metadata are
+checked locally. Real production quote/source reads do not establish deployment
+of this new adapter code.
+
 ## Release provenance
 
 The [release manifest](backend/sandbox/release_manifest.json) records the existing
@@ -224,14 +312,13 @@ in development. To override it, place just this setting in
 `frontend/.env.local`. Rewrites are resolved at build time in production:
 redeploy after changing it. Leave it unset for combined Vercel Services.
 
-The provider, token, database and budget names in the root `.env.example` reserve
-the locked blueprint's future backend configuration. They are not loaded,
-validated or used yet. AI runs are disabled in the example until their controls
-exist. Health and checkout work without provider credentials; no provider factory
-is implemented. Future repository integration settings in `.env.example` are
-reserved and not read by checkout: `DEMO_GITHUB_OWNER`, `DEMO_GITHUB_REPO`,
-`DEMO_SOURCE_PREFIX`, `SANDBOX_API_BASE_URL`, `DEMO_RELEASE_V1_0_REF` and
-`DEMO_RELEASE_V1_1_REF`. Do not populate pinned references with invented values.
+The provider, database and budget names in root `.env.example` reserve future
+backend configuration. AI runs remain disabled until their controls exist; no
+provider factory is implemented. Milestone 2B tools read only the backend GitHub
+and sandbox process variables described above. `.env.example` is a reference,
+not an automatically loaded file: export values in PowerShell or configure them
+in backend deployment settings. Health, direct checkout and corpus retrieval
+continue to work without these variables or provider credentials.
 
 Do not copy backend credentials into frontend environment files or settings.
 All future credentials belong in the Python backend environment; never use
@@ -329,7 +416,11 @@ release verification in [`docs/MILESTONE_1B_B_RESULTS.md`](docs/MILESTONE_1B_B_R
 and provenance checks in [`docs/MILESTONE_1B_C_RESULTS.md`](docs/MILESTONE_1B_C_RESULTS.md).
 The latest evidence/retrieval results are in
 [`docs/MILESTONE_2A_RESULTS.md`](docs/MILESTONE_2A_RESULTS.md).
+Technical-tool checks and separate live smoke results are in
+[`docs/MILESTONE_2B_RESULTS.md`](docs/MILESTONE_2B_RESULTS.md).
 
 Milestones 1A through 1B-C are complete, including published release tags.
-Milestone 2A is implemented and verified locally for human review. No commit,
-push, deployment, tag mutation or work on 2B is performed in this assignment.
+Milestone 2A is complete, committed and pushed per the participant. Milestone 2B
+is implemented for review with local checks and separate live read/quote smoke
+checks. No commit, push, deployment, tag mutation or work on 2C/3 is performed
+in this assignment. Historical milestone reports retain their original status.

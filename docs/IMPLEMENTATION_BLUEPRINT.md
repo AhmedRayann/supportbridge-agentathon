@@ -7,8 +7,9 @@ committed, deployed and production-tested by the participant at
 https://supportbridge-agentathon.vercel.app/, including eight checkout requests
 run with PowerShell after the local 1B-B report. Both annotated release tags are
 published with verified peeled targets (2026-11-23). Current assignment:
-**Milestone 2A only**, synthetic support evidence and read-only Python retrieval
-tools. No agents, deployment or further milestone in this assignment.
+**Milestone 2B only**, read-only GitHub investigation and checkout HTTP experiment
+tools. Milestone 2A is complete, committed and pushed per the participant.
+No agents, deployment or further milestone in this assignment.
 The synthetic-environment decisions in section C and phased gates in section O
 supersede earlier release naming and the undivided 1B assignment. This blueprint
 is internal development material, excluded from runtime investigation tools.
@@ -128,7 +129,7 @@ is unrelated application/health registration glue. This specification is detaile
 in `docs/REPOSITORY_PROVENANCE.md`; it does not enforce access by itself. In future
 tools, strip excluded file metadata/patches/content before model exposure. Internal
 milestone reports and this specification are excluded as well. Do not build these
-tools during 2A.
+tools beyond the reviewed Milestone 2B allowlist.
 
 Use the full-SHA GitHub comparison URL recorded in the provenance specification.
 The actual v1.1 commit adds a parallel versioned file; it does not edit v1.0's
@@ -362,6 +363,51 @@ At minimum test:
 
 **Quality gate (indicative, not validated):** all deterministic unit tests pass; at least 6/8 supported failure variations reproduce with evidence; no false `verified_regression` verdict on the initial negative/unknown cases; **all four LLM agents** execute authentic, visible model/tool steps; the likely code location resolves to a pinned permalink for the primary failing case; all rendered citations resolve; approval/rejection, session isolation and idempotence pass. Run repeated warm/cold live investigations and measure p50/p95 latency, costs and completion rates; don't claim a target was measured until it is. Include a denied code-write attempt and an untrusted-ticket prompt-injection test.
 
+### Milestone 2B technical-tool contract
+
+`backend/tools/github_read.py` exposes `list_checkout_releases()`,
+`get_checkout_source(release, path)`, `get_checkout_history(release, path, limit=5)`
+and `compare_checkout_sources(from_release, to_release)`. Release identities come
+from the unchanged manifest. Backend configuration must match that repository,
+source prefix and full-SHA pins; absent GitHub settings default to the approved
+manifest, not another repository. Reads use GitHub REST at those SHAs. Exact
+allowlists bind each calculation file to its own release; shared models/router
+may be read at either approved commit. Retrieved calculation bytes must match
+manifest SHA-256; shared files expose a calculated hash without claiming a
+manifest hash exists. Return exact source, numbered lines, pinned permalinks and
+timestamps, marked untrusted. No local/mutable fallback or broad browsing.
+
+History fetches one bounded page scoped to an approved path and SHA, retaining
+only approved release commit SHAs/dates and pinned source links. Commit messages,
+author details, unrelated metadata/file lists/patches are omitted before result
+construction. Comparison fetches both actual source snapshots and generates a
+labeled local unified diff, never a fabricated historical Git patch.
+
+`backend/tools/experiments.py` exposes async `run_checkout_quote(release,
+subtotal_cents, discount_percent, *, reserve_experiment=None)`. The optional
+callback is trusted host integration, not model input: bind an atomic durable
+reservation with maximum eight experiments before exposing a three-argument
+wrapper. Without it the function is an unbudgeted local/manual tool. No global
+counters or storage in 2B. Each invocation sends one actual POST to the fixed
+quote path at explicitly configured localhost HTTP or the approved Vercel HTTPS
+origin. It records input, method/path/URL, status, validated response, timestamps
+and duration. It checks schema and echoed input, never oracle/business assertions
+or a final verdict, and never chooses follow-up experiments.
+
+The shared private HTTP helper disables redirects, retries and environment proxy
+configuration, bounds decoded responses to 256 KiB, uses 5-second inactivity and
+15-second total timeouts per request, and returns sanitized failures. Individual
+source files are limited to 32 KiB. HTTPX's existing 0.28.1 pin is promoted to
+both runtime manifests. No new route, public source API, provider, agent or
+orchestration is implemented.
+
+Deferred follow-ups: Milestone 3 integration must exercise natural paraphrases
+such as "double charged" because lexical retrieval can miss them. A later
+payment-validation pass should decide capture/authorization amount semantics
+before strengthening constraints. Preserve the 2A corpus and tools in 2B.
+Keep active status documentation current after human commits; preserve historical
+reports as records of their original verification.
+
 ## K. Repository layout (participant-owned public monorepo)
 
 ```text
@@ -397,6 +443,9 @@ supportbridge/
       support_corpus.py
       github_read.py
       experiments.py
+      investigation_models.py
+      _config.py
+      _http.py
       evidence.py
     sandbox/
       releases/
@@ -488,7 +537,9 @@ Runtime is **not measured**; do not insist on these timings. If model latency is
 
 **Milestone 1B-C complete:** the source-identity/hash manifest and historical checks are committed. Both published annotated tags peel to their intended release commits. Preserve the manifest, calculation modules, oracle and Git history.
 
-**Current assignment — Milestone 2A only:** implement the focused synthetic corpus and five reusable typed Python retrieval tools, with strict bounded read-only access, exact provenance and query-dependent deterministic search. Run full backend, focused retrieval, lint, formatting, dependency and exported-package checks; record actual results in `docs/MILESTONE_2A_RESULTS.md`. No checkout/oracle/manifest/API changes, dependencies, frontend/Vercel changes, GitHub or experiment adapters, agents, model integration, persistence, commit, push, deployment, tag mutation or next milestone. Stop for human review before 2B.
+**Milestone 2A complete (participant-confirmed):** the synthetic corpus and five validated read-only retrieval tools are committed and pushed. Preserve their implementation and original results report.
+
+**Current assignment — Milestone 2B only:** add the restricted GitHub REST adapter and genuine checkout HTTP experiment adapter with typed observations. Test allowlists/provenance/errors, run full backend/lint/format/dependency/import/export checks, and separately record available real GitHub/local/production smoke requests in `docs/MILESTONE_2B_RESULTS.md`. No checkout/oracle/manifest/corpus/API changes, frontend/Vercel changes, agents, orchestration, prompts, model integration, persistence, final verdict, commit, push, deployment, tag mutation or next milestone. Stop for human review before 2C/3.
 
 ## P. Primary reference URLs (initially verified 18 November 2026; revalidate if configurations change)
 
