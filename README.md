@@ -8,11 +8,13 @@ Milestone 2A adds packaged support evidence and read-only Python retrieval tools
 for later agent integration.
 Milestone 2B adds pinned GitHub source/history access and actual checkout HTTP
 experiment tools. No LLM agents or investigation workflow are implemented yet.
+Milestone 2C adds PostgreSQL-backed sessions, investigation state, evidence,
+timeline, stage leases, budgets and human-review storage foundations.
 
 The checkout application and any customer incidents used in the demonstration
 are synthetic. There are no real customers, payment operations, tax, currency
-conversion, inventory or shopping-cart persistence. AI agents, model clients and
-database persistence are not implemented yet.
+conversion, inventory or shopping-cart persistence. Investigation records can
+persist in PostgreSQL; AI agents and model clients are not implemented yet.
 
 Milestone 1A is complete at <https://supportbridge-agentathon.vercel.app/>:
 the participant confirmed a working frontend and Python health response.
@@ -31,6 +33,8 @@ checkout requests were run with PowerShell after the local 1B-B verification.
 - `backend/tools/support_corpus.py`: five bounded, read-only evidence retrieval functions.
 - `backend/tools/github_read.py`: restricted GitHub source/history and source comparison.
 - `backend/tools/experiments.py`: selected checkout HTTP execution and observations.
+- `backend/storage/`: PostgreSQL state, sessions, immutable evidence/events,
+  reservations, leases, review foundations and investigation routes.
 - `backend/tests/`: pytest health, checkout, provenance and retrieval checks.
 - `vercel.json`: combined Vercel Services deployment and public routing.
 - `.env.example`: safe variable names/placeholders; no credentials are needed in 1A.
@@ -284,6 +288,93 @@ Both backend import styles and an exported backend without Git metadata are
 checked locally. Real production quote/source reads do not establish deployment
 of this new adapter code.
 
+## PostgreSQL investigations and session API
+
+Storage is optional for health, checkout and standalone retrieval, and required
+for investigation routes and recorded execution. There is no in-memory or SQLite
+fallback. Missing/unavailable PostgreSQL produces a sanitized 503 on storage
+routes. Startup does not run migrations or connect to a database.
+
+Install dependencies using the existing local setup command. Configure a local
+PostgreSQL database or a hosted provider such as Neon/Supabase. Store its URL in
+the Python process environment. To enter it without echoing it in PowerShell:
+
+```powershell
+$env:DATABASE_URL = [System.Net.NetworkCredential]::new('', (Read-Host 'DATABASE_URL' -AsSecureString)).Password
+$env:PUBLIC_APP_ORIGIN = 'http://localhost:3000'
+$env:AI_RUNS_ENABLED = 'false'
+.\.venv\Scripts\python.exe -m backend.storage.migrate
+```
+
+The explicit migration command is transactional, repeatable and checksum-checked.
+Use a direct PostgreSQL URL with schema privileges for migration, then the
+provider's transaction-pooler URL for runtime. Hosted URLs must include
+`sslmode=require`, `verify-ca` or `verify-full`. No production filesystem state,
+idle client pool or post-response background execution is used. Each operation
+opens/closes a short connection; a process-wide resource semaphore caps active
+connections at four with a three-second acquisition timeout. PostgreSQL remains
+the sole authority for budgets/state across instances. See
+[2C setup and verification](docs/MILESTONE_2C_RESULTS.md) for provider steps.
+
+| Endpoint | Behavior |
+| --- | --- |
+| `POST /svc/api/sessions` | Issue/validate an anonymous credential cookie. |
+| `POST /svc/api/investigations` | Create an owned pending investigation; requires `Idempotency-Key`. |
+| `GET /svc/api/investigations/{id}` | Read persisted lifecycle, findings, state/counters and stage status. |
+| `GET /svc/api/investigations/{id}/events?after=0&limit=50` | Read ordered events; maximum page size 100. |
+| `GET /svc/api/investigations/{id}/evidence/{evidence_id}` | Read an immutable owned observation and provenance. |
+
+First establish a session, then create/read an investigation. With both local
+servers running, these calls use the existing same-origin Next.js proxy:
+
+```powershell
+$headers = @{ Origin = 'http://localhost:3000' }
+$null = Invoke-WebRequest -Uri http://localhost:3000/svc/api/sessions -Method Post -Headers $headers -SessionVariable supportBridgeSession
+$headers['Idempotency-Key'] = [guid]::NewGuid().ToString('N')
+$created = Invoke-RestMethod -Uri http://localhost:3000/svc/api/investigations -Method Post -Headers $headers -WebSession $supportBridgeSession -ContentType application/json -Body '{"complaint":"Synthetic checkout amount question"}'
+Invoke-RestMethod -Uri "http://localhost:3000/svc/api/investigations/$($created.id)" -WebSession $supportBridgeSession
+```
+
+Reuse the same idempotency key and body when retrying creation. Changing inputs
+under an existing key is a conflict. Investigation IDs and returned internal
+session IDs do not authenticate access: every API read resolves the HTTP-only
+credential cookie and checks ownership/expiry. Cross-session reads return 404.
+Writes require the exact configured origin; HTTPS production uses Secure,
+SameSite Strict cookies. No browser-supplied owner ID is accepted.
+
+Creation records an actual `investigation_created` event and no invented agent
+activity. There is no `/step`, public tool execution/evidence insertion or approval
+endpoint yet. The UI and real agent workflow remain future work.
+
+Trusted host integration uses:
+
+```python
+context = ExecutionContext(store, owner_session_id, active_stage_lease)
+tools = context.tools_for(host_generated_action_key)
+observation = await tools['run_checkout_quote']('v1.0', 12500, 20)
+```
+
+The registry wraps the existing tools and returns the actual result, execution ID
+and owned evidence IDs. Only the three quote arguments are model-visible; scope,
+lease and PostgreSQL reservation are bound by the host. Never register the
+unbudgeted standalone 2B quote primitive with a model. Failed HTTP and interrupted
+attempts consume reservations. Identical completed tool retries reuse recorded
+results; interrupted calls require inspection and a new bounded action key rather
+than an automatic network replay. Lease recovery increments a fence and prevents
+old workers from writing. Independent support/repository outputs merge safely.
+
+Evidence/events are append-only with canonical hashes, raw observations and
+resolvable ticket/section/event IDs or pinned source links. Private reasoning,
+credentials and oversized payloads are rejected. Stage summaries are concise
+public explanations, not private model reasoning. Lifecycle is separate from
+behavior/cause findings; no diagnosis is generated in this milestone.
+
+Review storage accepts a draft only after a trusted host records a current
+verification-stage replay and independent assertion. Final human approval or
+rejection is owned/idempotent, with at most one escalation after approval.
+The actual independent verification gate, model calls and approval API are not
+implemented. Tests use explicitly labeled host assertion fixtures.
+
 ## Release provenance
 
 The [release manifest](backend/sandbox/release_manifest.json) records the existing
@@ -312,10 +403,11 @@ in development. To override it, place just this setting in
 `frontend/.env.local`. Rewrites are resolved at build time in production:
 redeploy after changing it. Leave it unset for combined Vercel Services.
 
-The provider, database and budget names in root `.env.example` reserve future
-backend configuration. AI runs remain disabled until their controls exist; no
-provider factory is implemented. Milestone 2B tools read only the backend GitHub
-and sandbox process variables described above. `.env.example` is a reference,
+The provider names in root `.env.example` reserve future configuration; no
+provider factory is implemented. PostgreSQL/session/quota settings are active in
+2C, and 2B tools read their backend GitHub/sandbox settings. AI execution is
+disabled by default; setting it true only enables trusted host stage operations,
+not an unimplemented LLM endpoint. `.env.example` is a reference,
 not an automatically loaded file: export values in PowerShell or configure them
 in backend deployment settings. Health, direct checkout and corpus retrieval
 continue to work without these variables or provider credentials.
@@ -346,6 +438,28 @@ npm.cmd run lint
 npm.cmd run typecheck
 npm.cmd run build
 ```
+
+PostgreSQL tests require a disposable `TEST_DATABASE_URL` in the Python process.
+They create/drop only their own randomly named schemas and otherwise skip
+explicitly when it is unset. Do not use a production database. Run the focused
+suite with `python -m pytest -c backend/pyproject.toml backend/tests/test_storage_postgres.py`.
+Default limits are eight experiments, ten model calls, one open investigation
+per session, four global execution slots, two new runs per session and twenty
+globally per rolling 24 hours. Configure them through `.env.example` names;
+existing budgets are captured at creation, with ceilings of eight experiments and
+twenty model calls. Only backend configuration may select the model limit (1–20).
+Pending, running and awaiting-stage work consumes global execution capacity;
+awaiting-review work does not. The separate per-session open-run limit still
+includes review, and daily quotas remain enforced. Global capacity is configurable
+from 1–100; four is a conservative starting default, not measured public-demo
+throughput. Tune it after actual four-agent runs in Milestone 3.
+
+Session bootstrap reuses valid credentials without extending expiry and rotates
+invalid/expired credentials into a new owner. Old investigations remain with the
+old session. Investigation endpoints do not rotate cookies, and database failures
+still return an infrastructure error. Apply the additive `002_model_call_ceiling`
+migration with the existing migration command before selecting model limits above
+ten; migration 001 and its recorded checksum are preserved.
 
 With both development servers running, independently verify the real HTTP path:
 
@@ -418,9 +532,13 @@ The latest evidence/retrieval results are in
 [`docs/MILESTONE_2A_RESULTS.md`](docs/MILESTONE_2A_RESULTS.md).
 Technical-tool checks and separate live smoke results are in
 [`docs/MILESTONE_2B_RESULTS.md`](docs/MILESTONE_2B_RESULTS.md).
+Durable-state and PostgreSQL results are in
+[`docs/MILESTONE_2C_RESULTS.md`](docs/MILESTONE_2C_RESULTS.md).
 
 Milestones 1A through 1B-C are complete, including published release tags.
-Milestone 2A is complete, committed and pushed per the participant. Milestone 2B
-is implemented for review with local checks and separate live read/quote smoke
-checks. No commit, push, deployment, tag mutation or work on 2C/3 is performed
-in this assignment. Historical milestone reports retain their original status.
+Milestones 2A and 2B are complete, committed, pushed and deployed per the
+participant. Milestone 2C is implemented and locally verified with real
+PostgreSQL for review. No hosted database was provisioned; its production
+configuration/deployment remains pending. No commit, push, deployment, tag
+mutation or work on Milestone 3 is performed in this assignment. Historical
+reports retain their original status.

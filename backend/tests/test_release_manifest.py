@@ -88,6 +88,11 @@ def test_manifest_releases_match_existing_static_dispatch(manifest: dict) -> Non
         "/health",
         "/svc/api/health",
         "/svc/api/sandbox/quote",
+        "/svc/api/sessions",
+        "/svc/api/investigations",
+        "/svc/api/investigations/{investigation_id}",
+        "/svc/api/investigations/{investigation_id}/events",
+        "/svc/api/investigations/{investigation_id}/evidence/{evidence_id}",
     }
 
 

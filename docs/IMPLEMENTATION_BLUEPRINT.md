@@ -7,8 +7,8 @@ committed, deployed and production-tested by the participant at
 https://supportbridge-agentathon.vercel.app/, including eight checkout requests
 run with PowerShell after the local 1B-B report. Both annotated release tags are
 published with verified peeled targets (2026-11-23). Current assignment:
-**Milestone 2B only**, read-only GitHub investigation and checkout HTTP experiment
-tools. Milestone 2A is complete, committed and pushed per the participant.
+**Milestone 2C only**, durable PostgreSQL state, evidence, timeline and execution
+tracking. Milestones 2A and 2B are complete, committed, pushed and deployed per the participant.
 No agents, deployment or further milestone in this assignment.
 The synthetic-environment decisions in section C and phased gates in section O
 supersede earlier release naming and the undivided 1B assignment. This blueprint
@@ -266,7 +266,7 @@ Opaque HTTP-only session cookie and server-issued scope; never rely on user-prov
 
 Development provider: Gemini with a generic OpenAI-compatible adapter where possible. Submitted provider: SSI LiteLLM environment variables `LITELLM_BASE_URL`, `LITELLM_API_KEY`, `LITELLM_MODEL`. Provider adaptation must be verified for structured outputs and tool calls; do not assume tool-calling parity. Secrets strictly server-side, never `NEXT_PUBLIC_*`.
 
-**Target:** roughly 5–8 calls per successful investigation; **hard cap:** 10 calls including structured-output repairs, 1 hypothesis revision, <=8 experiment executions including verifier replay. Aim to keep retrieved evidence concise. The Work research suggested an illustrative typical 17,600 input + 2,800 output tokens and planning ceiling 40,000 input + 6,000 output tokens per run; treat these as **unmeasured planning figures** until observed. Formula for cost: `(input_tokens × input_price + output_tokens × output_price) / 1,000,000`, plus any provider-specific billable categories. Prices and SSI spend cap are unknown.
+**Target:** roughly 5–8 calls per successful investigation; **default cap:** 10 calls including structured-output repairs, host-configurable from 1 through 20 (owner correction, 2026-11-25). Models cannot change their captured budgets. Preserve 1 hypothesis revision and <=8 experiment executions including verifier replay. Aim to keep retrieved evidence concise. The Work research suggested an illustrative typical 17,600 input + 2,800 output tokens and planning ceiling 40,000 input + 6,000 output tokens per run; treat these as **unmeasured planning figures** until observed. Formula for cost: `(input_tokens × input_price + output_tokens × output_price) / 1,000,000`, plus any provider-specific billable categories. Prices and SSI spend cap are unknown.
 
 **Protect public budget:** 1 active investigation per anonymous session, small global concurrency cap, adjustable daily cap, maximum 1–2 new AI runs per session/day, server-side rate limits and budget reservation, stop switch, cached immutable GitHub source. Unlimited local deterministic replay need not consume LLM tokens, but it must have independent abuse limits. Clearly label recorded example runs instead of presenting them as fresh.
 
@@ -408,6 +408,65 @@ before strengthening constraints. Preserve the 2A corpus and tools in 2B.
 Keep active status documentation current after human commits; preserve historical
 reports as records of their original verification.
 
+### Milestone 2C durable execution contract
+
+`backend/storage/` implements psycopg 3 transactions with PostgreSQL as the sole
+authority, explicit checksum-verified versioned migrations, and no runtime Git,
+file persistence, background completion or in-memory fallback. Use provider
+transaction pooling; prepared statements are disabled. Connections are short,
+limited to four per process, acquired within three seconds, with five-second
+statement/two-second lock timeouts. The connection semaphore limits resources,
+not investigation state or budgets. Hosted URLs require explicit TLS.
+
+Server-issued random anonymous credentials are stored only as hashes and sent in
+HTTP-only SameSite Strict cookies, Secure under the configured HTTPS origin,
+with fixed bounded expiry. Session bootstrap precedes idempotent investigation
+creation. All reads/writes join owner/session expiry; source/evidence IDs alone
+never authorize access. Configured-origin checks protect writes. Only storage
+routes require the database; health and checkout remain operational without it.
+
+Persist lifecycle independently from findings, per-stage outputs, numbered events,
+raw immutable evidence with canonical JSON hashes, tool executions, leases,
+experiment/model reservations and usage, drafts, final reviews and escalations.
+Atomic admission enforces session/global rolling-day limits and active-run limits.
+Stages acquire durable tokens/generations, prerequisites and expiring leases;
+expired workers cannot write after recovery. Parallel support/repository outputs
+merge under row locks. Retrying a completed operation reuses its recorded state;
+an interrupted HTTP action is not automatically rerun or refunded.
+
+`ExecutionContext(store, session_id, lease).tools_for(operation_key)` returns a
+fixed registry wrapping the existing ten tools. The trusted host supplies all
+scope and idempotency data; the model sees only original read-tool arguments or
+the three checkout parameters. Real calls record selected tool, submitted args,
+result/failure and resolvable evidence. Evidence/citations are investigation-owned;
+events sequence atomically across connections. Payloads are bounded and reject
+credentials/private-reasoning fields. No fabricated agent actions are seeded.
+
+The quote wrapper always reserves a PostgreSQL slot before HTTP. Reproduction,
+verification, follow-ups and retries share the default eight slots; failed and
+interrupted attempts remain consumed. Model accounting similarly reserves up to
+the host-selected limit (default ten, maximum twenty), preserving provider/model,
+stage and nullable observed token metrics;
+no model client, invented usage or cost exists. AI execution is disabled by
+default and missing budgets/storage fail closed.
+
+Owner corrections (2026-11-25): global execution capacity excludes awaiting-review
+investigations while pending/running/awaiting-stage work remains bounded. The
+one-open-run session limit still includes review, and daily quotas remain intact.
+Global capacity is configurable 1–100, conservatively default four pending real
+agent measurements. Session bootstrap rotates only invalid/expired credentials,
+never infrastructure failures, and never transfers old ownership. Valid sessions
+retain their fixed expiry; investigation endpoints continue rejecting bad sessions.
+An additive migration raises SQL model ceilings to twenty without modifying 001.
+
+Human review is a storage-only host interface in 2C. Eligible drafts require
+owned current-verification replay evidence and an explicitly host-recorded
+independent assertion; no assertion or verdict is generated automatically.
+Final approval/rejection is session-authorized and idempotent, with one escalation
+at most after approval. The real independent verifier/evidence gate remains
+Milestone 3 work. There is no public approval, execution, arbitrary insertion or
+fake successful `/step` endpoint in this milestone.
+
 ## K. Repository layout (participant-owned public monorepo)
 
 ```text
@@ -461,6 +520,14 @@ supportbridge/
       tests.py
       evidence.py
     storage/
+      database.py
+      models.py
+      repository.py
+      execution.py
+      router.py
+      safety.py
+      migrate.py
+      migrations/001_initial.sql
     providers/
       model_factory.py              # provider switch via env, no agent changes
     evidence/
@@ -539,7 +606,9 @@ Runtime is **not measured**; do not insist on these timings. If model latency is
 
 **Milestone 2A complete (participant-confirmed):** the synthetic corpus and five validated read-only retrieval tools are committed and pushed. Preserve their implementation and original results report.
 
-**Current assignment — Milestone 2B only:** add the restricted GitHub REST adapter and genuine checkout HTTP experiment adapter with typed observations. Test allowlists/provenance/errors, run full backend/lint/format/dependency/import/export checks, and separately record available real GitHub/local/production smoke requests in `docs/MILESTONE_2B_RESULTS.md`. No checkout/oracle/manifest/corpus/API changes, frontend/Vercel changes, agents, orchestration, prompts, model integration, persistence, final verdict, commit, push, deployment, tag mutation or next milestone. Stop for human review before 2C/3.
+**Milestone 2B complete (participant-confirmed):** technical investigation tools are committed, pushed and deployed. Preserve their behavior and original report.
+
+**Current assignment — Milestone 2C only:** implement durable investigation infrastructure and minimal session-owned API, with real PostgreSQL tests where available and precise hosted setup instructions in `docs/MILESTONE_2C_RESULTS.md`. Preserve checkout/oracle/manifest/corpus/technical tools and all earlier routes. No hosted provisioning, account changes, frontend, agents, prompts, model calls, automatic findings, fake `/step`, public execution/insertion/approval API, commit/push/deployment/tag changes or Milestone 3. Stop for human review.
 
 ## P. Primary reference URLs (initially verified 18 November 2026; revalidate if configurations change)
 
